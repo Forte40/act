@@ -898,8 +898,10 @@ function tprint (tbl, indent, max)
 end
 
 tArgs = { ... }
-local ast = parse(tArgs[1])
-tprint(ast)
-if ast then
-  print(compile(ast))
+if tArgs[1] then
+  local ast = parse(tArgs[1])
+  tprint(ast)
+  if ast then
+    print(compile(ast))
+  end
 end
