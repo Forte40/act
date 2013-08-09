@@ -685,7 +685,7 @@ function getWorkers(ast)
       workers[ast.worker] = true
     end
     for i, v in ipairs(ast.actions) do
-      subWorkers = interpret(v, env)
+      subWorkers = getWorkers(v, env)
       for worker, _ in pairs(subWorkers) do
         workers[worker] = true
       end
@@ -702,7 +702,7 @@ function interpret(ast, env)
     local succ = true
     local count = 0
     if ast.worker and env.worker ~= ast.worker then
-      if ast.executing then
+      if env.executing then
         -- send via modem
         if env.modem and env.channel and env.replyChannel then
           env.modem.transmit(env.channel, env.replyChannel, compile(ast))

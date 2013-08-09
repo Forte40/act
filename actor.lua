@@ -7,7 +7,7 @@ end
 local name = tArgs[1]
 
 local modem
-for _, side in ipairs(rs.getSides) do
+for _, side in ipairs(rs.getSides()) do
   if peripheral.getType(side) == "modem" then
     modem = peripheral.wrap(side)
   end
@@ -50,13 +50,13 @@ function localPlan()
     if plan == "]]" then
       stop = true
     else
-      act.act(plan)
+      act.act(plan {worker=name, modem=modem, channel=channel, replyChannel=replyChannel})
     end
   end
 end
 
 while not stop do
-  parallel.waitForAny(rednetPlan, localPlan)
+  parallel.waitForAny(remotePlan, localPlan)
 end
 
 modem.closeAll()

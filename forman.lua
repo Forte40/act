@@ -9,7 +9,7 @@ end
 os.loadAPI("apis/act")
 
 local modem
-for _, side in ipairs(rs.getSides) do
+for _, side in ipairs(rs.getSides()) do
   if peripheral.getType(side) == "modem" then
     modem = peripheral.wrap(side)
   end
@@ -51,9 +51,9 @@ function ping(message, nTimeout)
   local timer = os.startTimer(nTimeout)
   while true do
     local event, modemSide, senderChannel, replyChannel, returnMessage, senderDistance = os.pullEvent()
-    if e == "modem_message" then
+    if event == "modem_message" then
       return message
-    elseif e == "timer" and p1 == timer then
+    elseif event == "timer" and modemSide == timer then
       return nil
     end
   end
@@ -68,3 +68,7 @@ for worker, _ in pairs(workers) do
     return
   end
 end
+
+act.interpret(ast, {executing=true, modem=modem, channel=sendChannel, replyChannel=recieveChannel})
+
+modem.closeAll()
