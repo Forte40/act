@@ -1,3 +1,5 @@
+--http://pastebin.com/5CuUMxqr
+
 if not http then
   print("No access to web")
   return
@@ -14,6 +16,14 @@ local files = {
   {
     name = "do",
     url = "https://raw.github.com/Forte40/act/"..branch.."/do.lua"
+  },
+  {
+    name = "forman",
+    url = "https://raw.github.com/Forte40/act/"..branch.."/forman.lua"
+  },
+  {
+    name = "actor",
+    url = "https://raw.github.com/Forte40/act/"..branch.."/actor.lua"
   }
 }
 

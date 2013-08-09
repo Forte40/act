@@ -35,7 +35,7 @@ end
 
 --local actChannel
 
-os.loadAPI("act")
+os.loadAPI("apis/act")
 
 function remotePlan()
   local event, modemSide, senderChannel, replyChannel, plan, senderDistance = os.pullEvent("modem_message")

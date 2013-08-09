@@ -6,7 +6,7 @@ if #tArgs ~= 1 then
   return
 end
 
-os.loadAPI("act")
+os.loadAPI("apis/act")
 
 local modem
 for _, side in ipairs(rs.getSides) do

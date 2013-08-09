@@ -73,7 +73,7 @@ if #tArgs == 0 then
   return
 end
 
-os.loadAPI("act")
+os.loadAPI("apis/act")
 local cmd = tArgs[1]
 if cmd == "history" then
   if #history > 0 then
