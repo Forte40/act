@@ -706,6 +706,15 @@ function interpret(ast, env)
         -- send via modem
         if env.modem and env.channel and env.replyChannel then
           env.modem.transmit(env.channel, env.replyChannel, compile(ast))
+          if ast.plantype == "par" then
+            -- wait for response
+            while true do
+              local event, modemSide, senderChannel, replyChannel, returnMessage, senderDistance = os.pullEvent("modem_message")
+              if event == "modem_message" then
+                break
+              end
+            end
+          end
         else
           print("cannot send modem message to "..ast.worker)
         end
