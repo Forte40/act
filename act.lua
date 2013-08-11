@@ -11,14 +11,14 @@ if turtle and not turtle.act then
   local function wrap(fn)
     return function()
       local id = fn()
-      if id = -1 then
+      if id == -1 then
         return false
       end
       local events = {}
       local event = {}
       while true do
         event = {os.pullEvent()}
-        if event[1] == "turtle_response" and event[2] = id then
+        if event[1] == "turtle_response" and event[2] == id then
           for i, e in ipairs(events) do
             os.queueEvent(unpack(e))
           end

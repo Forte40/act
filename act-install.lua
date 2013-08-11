@@ -29,8 +29,10 @@ local files = {
 
 for _, file in ipairs(files) do
   local path
-  if file.folder and not fs.exists(file.folder) then
-    fs.makeDir(file.folder)
+  if file.folder then
+    if not fs.exists(file.folder) then
+      fs.makeDir(file.folder)
+    end
     path = fs.combine(file.folder, file.name)
     io.write("Installing '" .. file.name .. "' to " .. file.folder .. " ...")
   else
