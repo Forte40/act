@@ -8,6 +8,7 @@ local coord_change = {[0] = { 0,  1}, -- south / forward
 if turtle and not turtle.act then
   turtle.act = true
 
+  -- replace turtle functions
   local function wrap(fn)
     return function()
       local id = fn()
@@ -34,10 +35,27 @@ if turtle and not turtle.act then
     end
   end
 
-  -- replace turtle functions
   for fnName, fn in pairs(turtle.native) do
     turtle[fnName] = wrap(fn)
   end
+
+  -- replace sleep function
+  function sleep( _nTime )
+    local timer = os.startTimer( _nTime )
+    local events = {}
+    local event = {}
+    while true do
+      event = {os.pullEvent()}
+      if event[1] == "timer" and event[2] == timer then
+        for i, e in ipairs(events) do
+          os.queueEvent(unpack(e))
+          break
+        end
+      else
+        table.insert(events, event)
+      end
+    end
+  end  
 
   -- track relative direction and coordinates
   turtle.x = 0
