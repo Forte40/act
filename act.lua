@@ -6,8 +6,38 @@ local coord_change = {[0] = { 0,  1}, -- south / forward
                       [3] = { 1,  0}} -- east  / left
 -- check if API already loaded
 if turtle and not turtle.act then
-  -- replace turtle functions
   turtle.act = true
+
+  local function wrap(fn)
+    return function()
+      local id = fn()
+      if id = -1 then
+        return false
+      end
+      local events = {}
+      local event = {}
+      while true do
+        event = {os.pullEvent()}
+        if event[1] == "turtle_response" and event[2] = id then
+          for i, e in ipairs(events) do
+            os.queueEvent(unpack(e))
+          end
+          if event[3] then
+            return true
+          else
+            return false, event[4]
+          end
+        else
+          table.insert(events, event)
+        end
+      end
+    end
+  end
+
+  -- replace turtle functions
+  for fnName, fn in pairs(turtle.native) do
+    turtle[fnName] = wrap(fn)
+  end
 
   -- track relative direction and coordinates
   turtle.x = 0
