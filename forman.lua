@@ -22,7 +22,7 @@ end
 local plan = tArgs[1]
 if fs.exists(plan) then
   print("using file "..plan)
-  local file = fs.open(actions, "r")
+  local file = fs.open(plan, "r")
   plan = file.readAll()
   file.close()
 end

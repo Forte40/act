@@ -25,22 +25,13 @@ if not modem.isOpen(channel) then
   modem.open(channel)
 end
 
-function split(s, sep)
-  ret = {}
-  for v in string.gmatch(s, "[^"..sep.."]+") do
-    table.insert(ret, v)
-  end
-  return ret
-end
-
---local actChannel
-
 os.loadAPI("apis/act")
+
+local plans = {}
 
 function remotePlan()
   local event, modemSide, senderChannel, replyChannel, plan, senderDistance = os.pullEvent("modem_message")
-  act.act(plan, {worker=name, modem=modem, channel=channel, replyChannel=replyChannel})
-  modem.transmit(replyChannel, channel, name)
+  table.insert(plans, {plan, replyChannel})
 end
 
 local stop = false
@@ -50,13 +41,28 @@ function localPlan()
     if plan == "]]" then
       stop = true
     else
-      act.act(plan {worker=name, modem=modem, channel=channel, replyChannel=replyChannel})
+      table.insert(plans, {plan, nil})
+    end
+  end
+end
+
+function doPlan()
+  local plan, replyChannel = unpack(table.remove(plans, 1))
+  if plan ~= nil then
+    act.act(plan, {worker=name, modem=modem, channel=channel, replyChannel=replyChannel})
+    if replyChannel then
+      modem.transmit(replyChannel, channel, name)
     end
   end
 end
 
 while not stop do
-  parallel.waitForAny(remotePlan, localPlan)
+  parallel.waitForAll(
+    function ()
+      parallel.waitForAny(remotePlan, localPlan)
+    end,
+    doPlan
+  )
 end
 
 modem.closeAll()
