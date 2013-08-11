@@ -47,8 +47,10 @@ function localPlan()
 end
 
 function doPlan()
-  local plan, replyChannel = unpack(table.remove(plans, 1))
+  local plan = table.remove(plans, 1)
   if plan ~= nil then
+    local replyChannel = plan[2]
+    plan = plan[1]
     act.act(plan, {worker=name, modem=modem, channel=channel, replyChannel=replyChannel})
     if replyChannel then
       modem.transmit(replyChannel, channel, name)
