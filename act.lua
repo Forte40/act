@@ -437,17 +437,17 @@ lang.action = {}
 lang.joiner = S("/", O(lang.action))
 lang.plan = S(M(lang.worker), O(lang.action), M(lang.joiner),
   function (ast)
-    local rast = {actions=ast[2], plantype="seq"}
+    local rast = {actions=ast[2], plantype="par"}
     if ast[1] then rast.worker = ast[1] end
     if ast[3] then rast.join = ast[3][2] end
     return rast
   end
 )
-lang.seqplan = S("%(", lang.plan, "%)", P({2}))
-lang.parplan = S("{", lang.plan, "}",
+lang.parplan = S("%(", lang.plan, "%)", P({2}))
+lang.seqplan = S("{", lang.plan, "}",
   function (ast)
     local rast = ast[2]
-    rast.plantype = "par"
+    rast.plantype = "seq"
     return rast
   end
 )
@@ -759,6 +759,11 @@ function interpret(ast, env)
   env = env or {}
   env.num = env.num or {}
   env.bool = env.bool or {}
+  local waitWorkers = false
+  if not env.workers then
+    env.workers = {}
+    waitWorkers = true
+  end
   if ast.actions then
     local succ = true
     local count = 0
@@ -766,10 +771,18 @@ function interpret(ast, env)
       if env.executing then
         -- send via modem
         if env.modem and env.channel and env.replyChannel then
+          if env.workers[ast.worker] == nil then
+            env.workers[ast.worker] = true
+          elseif env.workers[ast.worker] == false then
+            local event = os.pullEvent("modem_message", nil, nil, nil, ast.worker)
+            env.workers[ast.worker] = true
+          end
           env.modem.transmit(env.channel, env.replyChannel, ast.worker.."@"..compile(ast))
+          env.workers[ast.worker] = false
           if ast.plantype ~= "par" then
             -- wait for response
             local event = os.pullEvent("modem_message", nil, nil, nil, ast.worker)
+            env.workers[ast.worker] = true
           end
         else
           print("cannot send modem message to "..ast.worker)
