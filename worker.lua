@@ -27,50 +27,17 @@ end
 
 os.loadAPI("apis/act")
 
-local plans = {}
-
-function remotePlan()
-  local event, modemSide, senderChannel, replyChannel, plan, senderDistance = os.pullEvent("modem_message")
-  local pos = plan:find("@")
+while true do
+  local event, modemSide, senderChannel, replyChannel, message, senderDistance = os.pullEvent("modem_message")
+  local pos = message:find("@")
   if pos then
-    local worker = plan:sub(1, pos - 1)
+    local worker = message:sub(1, pos - 1)
     if worker == name then
-      table.insert(plans, {plan:sub(pos + 1), replyChannel})
+      local plan = message:sub(pos + 1)
+      act.act(plan, {worker=name, modem=modem, channel=channel, replyChannel=replyChannel})
+      if replyChannel then
+        modem.transmit(replyChannel, channel, name)
+      end
     end
   end
 end
-
-local stop = false
-function localPlan()
-  local plan = read()
-  if plan ~= nil then
-    if plan == "]]" then
-      stop = true
-    else
-      table.insert(plans, {plan, nil})
-    end
-  end
-end
-
-function doPlan()
-  local plan = table.remove(plans, 1)
-  if plan ~= nil then
-    local replyChannel = plan[2]
-    plan = plan[1]
-    act.act(plan, {worker=name, modem=modem, channel=channel, replyChannel=replyChannel})
-    if replyChannel then
-      modem.transmit(replyChannel, channel, name)
-    end
-  end
-end
-
-while not stop do
-  parallel.waitForAll(
-    function ()
-      parallel.waitForAny(remotePlan, localPlan)
-    end,
-    doPlan
-  )
-end
-
-modem.closeAll()
