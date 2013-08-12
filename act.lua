@@ -29,7 +29,7 @@ if turtle and not turtle.act then
           os.queueEvent(unpack(e))
         end
         return unpack(event)
-      else
+      elseif event[1] == "modem_message" then
         table.insert(events, event)
       end
     end
@@ -741,10 +741,15 @@ function getWorkers(ast)
       workers[ast.worker] = true
     end
     for i, v in ipairs(ast.actions) do
-      subWorkers = getWorkers(v, env)
+      local subWorkers = getWorkers(v)
       for worker, _ in pairs(subWorkers) do
         workers[worker] = true
       end
+    end
+  elseif ast.action and type(ast.action) == "table" then
+    local subWorkers = getWorkers(ast.action)
+    for worker, _ in pairs(subWorkers) do
+      workers[worker] = true
     end
   end
   return workers
@@ -761,7 +766,7 @@ function interpret(ast, env)
       if env.executing then
         -- send via modem
         if env.modem and env.channel and env.replyChannel then
-          env.modem.transmit(env.channel, env.replyChannel, compile(ast))
+          env.modem.transmit(env.channel, env.replyChannel, ast.worker.."@"..compile(ast))
           if ast.plantype ~= "par" then
             -- wait for response
             local event = os.pullEvent("modem_message", nil, nil, nil, ast.worker)
@@ -961,6 +966,7 @@ tArgs = { ... }
 if tArgs[1] then
   local ast = parse(tArgs[1])
   tprint(ast)
+  tprint(getWorkers(ast))
   if ast then
     print(compile(ast))
   end
