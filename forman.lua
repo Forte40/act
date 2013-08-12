@@ -45,7 +45,8 @@ if not ast then
   return
 end
 
-function ping(message, nTimeout)
+function ping(worker, nTimeout)
+  local message = worker.."@"..worker..":If"
   nTimeout = nTimeout or 1
   modem.transmit(sendChannel, recieveChannel, message)
   local timer = os.startTimer(nTimeout)
@@ -61,7 +62,7 @@ end
 
 local workers = act.getWorkers(ast)
 for worker, _ in pairs(workers) do
-  if ping(worker..":If") then
+  if ping(worker) then
     print(worker.." online")
   else
     print(worker.." offline")

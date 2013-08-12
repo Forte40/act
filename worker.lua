@@ -31,7 +31,13 @@ local plans = {}
 
 function remotePlan()
   local event, modemSide, senderChannel, replyChannel, plan, senderDistance = os.pullEvent("modem_message")
-  table.insert(plans, {plan, replyChannel})
+  local pos = plan:find("@")
+  if pos then
+    local worker = plan:sub(1, pos - 1)
+    if worker == name then
+      table.insert(plans, {plan:sub(pos + 1), replyChannel})
+    end
+  end
 end
 
 local stop = false

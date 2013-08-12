@@ -8,6 +8,39 @@ local coord_change = {[0] = { 0,  1}, -- south / forward
 if turtle and not turtle.act then
   turtle.act = true
 
+  -- replace os.pullEvent to not eat events
+  os.pullEvent = function (...)
+    local events = {}
+    local event
+    while true do
+      event = {os.pullEventRaw()}
+      if event[1] == "terminate" then
+        error("Terminated", 0)
+      end
+      local matched = true
+      for i = 1, arg.n do
+        if arg[i] and arg[i] ~= event[i] then
+          matched = false
+          break
+        end
+      end
+      if matched then
+        for i, e in ipairs(events) do
+          os.queueEvent(unpack(e))
+        end
+        return unpack(event)
+      else
+        table.insert(events, event)
+      end
+    end
+  end
+
+  -- replace sleep function
+  sleep = function (time)
+    local timer = os.startTimer(time)
+    event = os.pullEvent("timer", timer)
+  end  
+
   -- replace turtle functions
   local function wrap(fn)
     return function()
@@ -15,22 +48,11 @@ if turtle and not turtle.act then
       if id == -1 then
         return false
       end
-      local events = {}
-      local event = {}
-      while true do
-        event = {os.pullEvent()}
-        if event[1] == "turtle_response" and event[2] == id then
-          for i, e in ipairs(events) do
-            os.queueEvent(unpack(e))
-          end
-          if event[3] then
-            return true
-          else
-            return false, event[4]
-          end
-        else
-          table.insert(events, event)
-        end
+      local event, responseID, success, err = os.pullEvent("turtle_response", id)
+      if success then
+        return true
+      else
+        return false, err
       end
     end
   end
@@ -42,24 +64,6 @@ if turtle and not turtle.act then
       turtle[fnName] = wrap(fn)
     end
   end
-
-  -- replace sleep function
-  function sleep( _nTime )
-    local timer = os.startTimer( _nTime )
-    local events = {}
-    local event = {}
-    while true do
-      event = {os.pullEvent()}
-      if event[1] == "timer" and event[2] == timer then
-        for i, e in ipairs(events) do
-          os.queueEvent(unpack(e))
-          break
-        end
-      else
-        table.insert(events, event)
-      end
-    end
-  end  
 
   -- track relative direction and coordinates
   turtle.x = 0
@@ -760,19 +764,7 @@ function interpret(ast, env)
           env.modem.transmit(env.channel, env.replyChannel, compile(ast))
           if ast.plantype ~= "par" then
             -- wait for response
-            local events = {}
-            local event = {}
-            while true do
-              event = os.pullEvent()
-              if event[1] == "modem_message" and event[5] == ast.worker then
-                for _, e in ipairs(events) do
-                  os.queueEvent(unpack(e))
-                end
-                break
-              else
-                table.insert(events, event)
-              end
-            end
+            local event = os.pullEvent("modem_message", nil, nil, nil, ast.worker)
           end
         else
           print("cannot send modem message to "..ast.worker)
