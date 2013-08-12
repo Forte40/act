@@ -22,8 +22,8 @@ local files = {
     url = "https://raw.github.com/Forte40/act/"..branch.."/forman.lua"
   },
   {
-    name = "actor",
-    url = "https://raw.github.com/Forte40/act/"..branch.."/actor.lua"
+    name = "worker",
+    url = "https://raw.github.com/Forte40/act/"..branch.."/worker.lua"
   }
 }
 
@@ -34,22 +34,37 @@ for _, file in ipairs(files) do
       fs.makeDir(file.folder)
     end
     path = fs.combine(file.folder, file.name)
-    io.write("Installing '" .. file.name .. "' to " .. file.folder .. " ...")
   else
     path = file.name
-    io.write("Installing '" .. file.name .. "' ...")
   end
+  local currText = ""
   if fs.exists(path) then
-    io.write(" overwriting ...")
+    local f = fs.open(path, "r")
+    currText = f.readAll()
+    f.close()
+    io.write("update  ")
+  else
+    io.write("install ")
+  end
+  io.write("'"..file.name.."'"..string.rep(" ", math.max(0, 8 - #file.name)))
+  if file.folder then
+    io.write(" in '"..file.folder.."'"..string.rep(".", math.max(0, 8 - #file.folder)).."...")
+  else
+    io.write(".................")
   end
   local request = http.get(file.url)
   if request then
     local response = request.getResponseCode()
     if response == 200 then
-      local f = fs.open(path, "w")
-      f.write(request.readAll())
-      f.close()
-      print(" done")
+      local newText = request.readAll()
+      if newText == currText then
+        print("skip")
+      else
+        local f = fs.open(path, "w")
+        f.write(newText)
+        f.close()
+        print("done")
+      end
     else
       print(" bad HTTP response code " .. response)
     end
