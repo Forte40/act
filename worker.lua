@@ -1,6 +1,6 @@
 local tArgs = { ... }
 if #tArgs ~= 1 then
-  print("Usage: actor <name> <channel>")
+  print("Usage: worker <name> <channel>")
   return
 end
 

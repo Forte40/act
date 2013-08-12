@@ -36,7 +36,11 @@ if turtle and not turtle.act then
   end
 
   for fnName, fn in pairs(turtle.native) do
-    turtle[fnName] = wrap(fn)
+    if fnName ~= "getItemCount" and
+        fnName ~= "getItemSpace" and
+        fnName ~= "getFuelLevel" then
+      turtle[fnName] = wrap(fn)
+    end
   end
 
   -- replace sleep function

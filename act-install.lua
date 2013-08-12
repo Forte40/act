@@ -50,7 +50,7 @@ for _, file in ipairs(files) do
   if file.folder then
     io.write(" in '"..file.folder.."'"..string.rep(".", math.max(0, 8 - #file.folder)).."...")
   else
-    io.write(".................")
+    io.write("    .............")
   end
   local request = http.get(file.url)
   if request then
