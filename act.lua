@@ -43,8 +43,8 @@ if turtle and not turtle.act then
 
   -- replace turtle functions
   local function wrap(fn)
-    return function()
-      local id = fn()
+    return function(...)
+      local id = fn(...)
       if id == -1 then
         return false
       end
