@@ -754,12 +754,19 @@ function interpret(ast, env)
         -- send via modem
         if env.modem and env.channel and env.replyChannel then
           env.modem.transmit(env.channel, env.replyChannel, compile(ast))
-          if ast.plantype == "par" then
+          if ast.plantype ~= "par" then
             -- wait for response
+            local events = {}
+            local event = {}
             while true do
-              local event, modemSide, senderChannel, replyChannel, returnMessage, senderDistance = os.pullEvent("modem_message")
-              if event == "modem_message" then
+              event = os.pullEvent()
+              if event[1] == "modem_message" and event[5] == ast.worker then
+                for _, e in ipairs(events) do
+                  os.queueEvent(unpack(e))
+                end
                 break
+              else
+                table.insert(events, event)
               end
             end
           end
