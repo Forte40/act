@@ -410,7 +410,8 @@ end
 local pre = {}
 pre.comment = S("%-%-[^\r\n]*[\r\n]*")
 pre.space = C("[ \r\n]+", pre.comment)
-pre.line = S(Z(pre.space), "[^ \r\n]+", Z(pre.space), P({2}))
+pre.string = S('"',O(C('\\"', '[^"]'), P()),'"', P())
+pre.line = S(Z(pre.space), C(pre.string, '[^ \r\n"]+'), Z(pre.space), P{2})
 pre.source = O(pre.line, P())
 
 -- act language ----------------------------------------------------------------
@@ -418,21 +419,24 @@ pre.source = O(pre.line, P())
 local lang = {}
 lang.float = L("%-?%d+%.%d+", function (ast)    return tonumber(ast) end)
 lang.int = L("%-?%d+", function (ast)   return tonumber(ast) end)
+lang.string = S('"',O(C('\\"', '[^"]'), P()),'"', function (ast)
+  return ast[2]:gsub("\\n", "\n"):gsub('\\"', '"'):gsub("\\\\", "\\")
+end)
 lang.token = L("[%u%l%d_]+")
-lang.numvar = S("#", "[%u%l]", P({vartype="num", name=2}))
-lang.boolvar = S("%$", "[%u%l]", P({vartype="bool", name=2}))
-lang.worker = S(lang.token, ":", P({1}))
+lang.numvar = S("#", "[%u%l]", P{vartype="num", name=2})
+lang.boolvar = S("%$", "[%u%l]", P{vartype="bool", name=2})
+lang.worker = S(lang.token, ":", P{1})
 lang.number = C("%*", lang.float, lang.int, lang.numvar)
-lang.variable = S("=", C(lang.numvar, lang.boolvar), P({2}))
+lang.variable = S("=", C(lang.numvar, lang.boolvar), P{2})
 lang.predicate = L("[%?~]")
 lang.locationaction = C(
-  S("G<", lang.int, ",", lang.int, ",", lang.int, M(S(",", lang.int, P({2}))), ">", P({waypointtype="G", x=2, y=4, z=6, facing=7})),
+  S("G<", lang.int, ",", lang.int, ",", lang.int, M(S(",", lang.int, P{2})), ">", P{waypointtype="G", x=2, y=4, z=6, facing=7}),
   S("[Gw]", "<", lang.token, ">", P({waypointtype=1, waypoint=3}))
 )
-lang.param2action = S("t", lang.int, ",", lang.int, P({action=1, param1=2, param2=4})) 
-lang.paramaction = S(C("[cegostz]", "[E][fud]"), lang.number, P({action=1, param=2}))
+lang.param2action = S("t", lang.int, ",", lang.int, P{action=1, param1=2, param2=4}) 
+lang.paramaction = S(C("[cegostz]", "[E][fud]"), C(lang.number, lang.string), P{action=1, param=2})
 lang.simpleaction = C("[fblrudq]", "[ABCDGHMPS][fud]", "Gb", "I[csf]")
-lang.extension = S("%%", lang.token, Z(S(",", lang.token, P({2}))), "%%", P({extension=2, params=3}))
+lang.extension = S("%%", C(lang.token, lang.string, lang.number), Z(S(",", C(lang.token, lang.string, lang.number), P{2})), "%%", P{extension=2, params=3})
 lang.action = {}
 lang.joiner = S("/", O(lang.action))
 lang.plan = S(M(lang.worker), O(lang.action), M(lang.joiner),
@@ -443,7 +447,7 @@ lang.plan = S(M(lang.worker), O(lang.action), M(lang.joiner),
     return rast
   end
 )
-lang.parplan = S("%(", lang.plan, "%)", P({2}))
+lang.parplan = S("%(", lang.plan, "%)", P{2})
 lang.seqplan = S("{", lang.plan, "}",
   function (ast)
     local rast = ast[2]
@@ -468,17 +472,24 @@ I(lang.action, S(M(lang.predicate), C(
     return rast
   end
 ))
-lang.start = O(C(lang.parplan, lang.seqplan, lang.plan), P({1}))
+lang.start = O(lang.plan, P{1})
 
 -- macro mode ------------------------------------------------------------------
 
-lang.repeater = S(M(lang.int), M(lang.joiner), "%)", M(lang.number), P({repeatlines=1, join=2, count=4}))
+lang.repeater = S(M(lang.int), M(lang.joiner), "%)", M(lang.number), P{repeatlines=1, join=2, count=4})
 
 -- compiler --------------------------------------------------------------------
 
-local planContainer = {seq = {"(", ")"},
-                 par = {"{", "}"}}
+local planContainer = {seq = {"{", "}"},
+                 par = {"(", ")"}}
 local varType = {num="#", bool="$"}
+local function varString(v)
+  if type(v) == "table" then
+    return varType[v.vartype]..v.name
+  else
+    return string.format("%q", v)
+  end
+end
 function compile(ast)
   if ast.action then
     local src = ""
@@ -491,20 +502,16 @@ function compile(ast)
       src = ast.predicate .. src
     end
     if ast.count then
-      if type(ast.count) == "table" then
-        src = src .. varType[ast.count.vartype] .. ast.count.name
-      else
-        src = src .. tostring(ast.count)
-      end
+      src = src .. varString(ast.count)
     end
     if ast.param then
-      src = src .. tostring(ast.param)
+      src = src .. varString(ast.param)
     end
     if ast.param1 then
-      src = src .. tostring(ast.param1) .. "," .. tostring(ast.param2)
+      src = src .. varString(ast.param1) .. "," .. varString(ast.param2)
     end
     if ast.variable then
-      src = src .. "=" .. varType[ast.variable.vartype] .. ast.variable.name
+      src = src .. "=" .. varString(ast.variable)
     end
     return src
   elseif ast.actions then
@@ -536,7 +543,7 @@ function compile(ast)
   elseif ast.extension then
     local src = "%" .. ast.extension
     for i, v in ipairs(ast.params) do
-      src = src .. "," .. v
+      src = src .. varString(v)
     end
     src = src .. "%"
     return src
@@ -670,6 +677,7 @@ local tHandlers = {
   ["s"] = turtle.select,
   ["t"] = turtle.transferTo,
   ["R"] = turtle.refuel,
+  ["o"] = io.write,
   -- dig
   ["Df"] = turtle.dig,
   ["Du"] = turtle.digUp,
@@ -979,8 +987,8 @@ tArgs = { ... }
 if tArgs[1] then
   local ast = parse(tArgs[1])
   tprint(ast)
-  tprint(getWorkers(ast))
   if ast then
+    tprint(getWorkers(ast))
     print(compile(ast))
   end
 end
