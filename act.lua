@@ -425,9 +425,10 @@ end)
 lang.token = L("[%u%l%d_]+")
 lang.numvar = S("#", "[%u%l]", P{vartype="num", name=2})
 lang.boolvar = S("%$", "[%u%l]", P{vartype="bool", name=2})
+lang.extvar = S("%%", lang.token, P{vartype="ext", name=2})
 lang.worker = S(lang.token, ":", P{1})
 lang.number = C("%*", lang.float, lang.int, lang.numvar)
-lang.variable = S("=", C(lang.numvar, lang.boolvar), P{2})
+lang.variable = S("=", C(lang.numvar, lang.boolvar, lang.extvar), P{2})
 lang.predicate = L("[%?~]")
 lang.locationaction = C(
   S("G<", lang.int, ",", lang.int, ",", lang.int, M(S(",", lang.int, P{2})), ">", P{waypointtype="G", x=2, y=4, z=6, facing=7}),
@@ -435,8 +436,8 @@ lang.locationaction = C(
 )
 lang.param2action = S("t", lang.int, ",", lang.int, P{action=1, param1=2, param2=4}) 
 lang.paramaction = S(C("[cegostz]", "[E][fud]"), C(lang.number, lang.string), P{action=1, param=2})
-lang.simpleaction = C("[fblrudq]", "[ABCDGHMPS][fud]", "Gb", "I[csf]")
-lang.extension = S("%%", C(lang.token, lang.string, lang.number), Z(S(",", C(lang.token, lang.string, lang.number), P{2})), "%%", P{extension=2, params=3})
+lang.simpleaction = C("[efblrudq]", "[ABCDEGHMPS][fud]", "Gb", "I[csf]")
+lang.extension = S("%%", lang.token, Z(S(",", C(lang.token, lang.string, lang.number), P{2})), "%%", P{extension=2, params=3})
 lang.action = {}
 lang.joiner = S("/", O(lang.action))
 lang.plan = S(M(lang.worker), O(lang.action), M(lang.joiner),
@@ -482,7 +483,7 @@ lang.repeater = S(M(lang.int), M(lang.joiner), "%)", M(lang.number), P{repeatlin
 
 local planContainer = {seq = {"{", "}"},
                  par = {"(", ")"}}
-local varType = {num="#", bool="$"}
+local varType = {num="#", bool="$", ext="%"}
 local function varString(v)
   if type(v) == "table" then
     return varType[v.vartype]..v.name
@@ -676,7 +677,7 @@ local tHandlers = {
   -- others
   ["s"] = turtle.select,
   ["t"] = turtle.transferTo,
-  ["R"] = turtle.refuel,
+  ["e"] = turtle.refuel,
   ["o"] = io.write,
   -- dig
   ["Df"] = turtle.dig,
@@ -746,13 +747,14 @@ local tExtensions = {
           local currCount = turtle.getItemCount(slot)
           if currCount < count then
             if currCount == 0 then
-              print("place "..tostring(count).." "..desc.." in slot "..tostring(slot))
+              io.write("place "..tostring(count).." "..desc.." in slot "..tostring(slot))
             else
-              print("place "..tostring(count - currCount).." more "..desc.." in slot "..tostring(slot))
+              io.write("place "..tostring(count - currCount).." more "..desc.." in slot "..tostring(slot))
             end
             -- wait for inventory event
             if io.input then
               local event = os.pullEvent("turtle_inventory")
+              print()
             else
               io.read()
             end
@@ -846,53 +848,59 @@ function interpret(ast, env)
     end
     return count, succ
   elseif ast.action then
-    local predicate = ast.predicate
-    local count = ast.count or 1
-    if ast.count and type(ast.count) == "table" then
-      count = env[ast.count.vartype][ast.count.name] or 0
-    elseif ast.count == "*" then
-      count = math.huge
-    end
-    local i = 0
-    local succ = true
-    local rep = 0
-    if type(ast.action) == "string" then
-      local func = tHandlers[ast.action]
-      if ast.param then
-        succ = func(ast.param)
-      elseif ast.param1 then
-        succ = func(ast.param1, ast.param2)
+    if ast.variable and ast.variable.vartype == "ext" then
+      registerExtension(ast.variable.name, function ()
+        return interpret{action=ast.action}
+      end)
+    else
+      local predicate = ast.predicate
+      local count = ast.count or 1
+      if ast.count and type(ast.count) == "table" then
+        count = env[ast.count.vartype][ast.count.name] or 0
+      elseif ast.count == "*" then
+        count = math.huge
+      end
+      local i = 0
+      local succ = true
+      local rep = 0
+      if type(ast.action) == "string" then
+        local func = tHandlers[ast.action]
+        if ast.param then
+          succ = func(ast.param)
+        elseif ast.param1 then
+          succ = func(ast.param1, ast.param2)
+        else
+          while i < count do
+            succ = func()
+            if not succ then break end
+            i = i + 1
+          end
+        end
       else
+        env.count = count
         while i < count do
-          succ = func()
+          env.iter = i + 1
+          rep, succ = interpret(ast.action, env)
           if not succ then break end
           i = i + 1
         end
       end
-    else
-      env.count = count
-      while i < count do
-        env.iter = i + 1
-        rep, succ = interpret(ast.action, env)
-        if not succ then break end
-        i = i + 1
+      if ast.variable then
+        if ast.variable.vartype == "num" then
+          env["num"][ast.variable.name] = i
+        elseif ast.variable.vartype == "bool" then
+          env["bool"][ast.variable.name] = succ
+        end
       end
-    end
-    if ast.variable then
-      if ast.variable.vartype == "num" then
-        env["num"][ast.variable.name] = i
-      elseif ast.variable.vartype == "bool" then
-        env["bool"][ast.variable.name] = succ
+      if ast.predicate then
+        if ast.predicate == "?" then
+          return i, succ
+        elseif ast.predicate == "~" then
+          return i, not succ
+        end
+      else
+        return i, true
       end
-    end
-    if ast.predicate then
-      if ast.predicate == "?" then
-        return i, succ
-      elseif ast.predicate == "~" then
-        return i, not succ
-      end
-    else
-      return i, true
     end
   elseif ast.waypointtype then
     if ast.waypointtype == "w" then
