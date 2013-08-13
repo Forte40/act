@@ -747,7 +747,11 @@ local tExtensions = {
         while not found do
           if turtle.getItemCount(slot) < count then
             -- wait for inventory event
-            local event = os.pullEvent("turtle_inventory")
+            if io.input then
+              local event = os.pullEvent("turtle_inventory")
+            else
+              io.read()
+            end
           else
             print(" go it")
           end
