@@ -745,7 +745,7 @@ local tExtensions = {
         while true do
           local currCount = turtle.getItemCount(slot)
           if currCount < count then
-            if currCount = 0 then
+            if currCount == 0 then
               print("place "..tostring(count).." "..desc.." in slot "..tostring(slot))
             else
               print("place "..tostring(count - currCount).." more "..desc.." in slot "..tostring(slot))
