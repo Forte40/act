@@ -768,6 +768,7 @@ local tExtensions = {
         end
       end
     end
+    return 1, true
   end
 }
 
@@ -969,6 +970,8 @@ function interpret(ast, env)
   elseif ast.extension then
     if tExtensions[ast.extension] then
       return tExtensions[ast.extension](unpack(ast.params))
+    else
+      return 0, true
     end
   end
 end
