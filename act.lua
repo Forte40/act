@@ -742,10 +742,14 @@ local tExtensions = {
         if not slot then break end
         count = tonumber(count)
         if not count then break end
-        io.write("checking for "..tostring(count).." "..desc.." in slot "..tostring(slot))
-        local found = false
-        while not found do
-          if turtle.getItemCount(slot) < count then
+        while true do
+          local currCount = turtle.getItemCount(slot)
+          if currCount < count then
+            if currCount = 0 then
+              print("place "..tostring(count).." "..desc.." in slot "..tostring(slot))
+            else
+              print("place "..tostring(count - currCount).." more "..desc.." in slot "..tostring(slot))
+            end
             -- wait for inventory event
             if io.input then
               local event = os.pullEvent("turtle_inventory")
@@ -753,8 +757,7 @@ local tExtensions = {
               io.read()
             end
           else
-            found = true
-            print(" go it")
+            break
           end
         end
       end
