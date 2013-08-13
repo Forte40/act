@@ -1,0 +1,78 @@
+-- the tunnel cross section will look like this
+-- _ is stone slab on bottom half
+-- ^ is stone slab on top half
+-- = is stone brick
+-- I is iron bars
+-- H is minecart track
+-- * is glowstone
+--
+--      normal      every 8
+--  4   _ _ _        _ * _  
+--  3 = ^   ^ =    = ^   ^ =
+--  2 I       I    =       =
+--  1 I       I    =       =
+--  0 = _ H _ =    = _ H _ =
+-- -1     ^            ^
+
+-- set start positions (x,y,z) and facing direction
+%startup
+  ,forman,       0,1,0 ,south
+  ,Left,         2,3,1 ,south
+  ,LeftCenter,   1,4,1 ,south
+  ,Center,       0,4,1 ,south
+  ,RightCenter, -1,4,1 ,south
+  ,Right,       -2,3,1 ,south
+%
+-- routine to request resources
+-- more than what is requested can be added
+-- turtle only confirms amount, not type
+--   slot, description, amount
+(
+  (Left:        %request, 1, brick, 18,
+                          2, bars,  14%)
+  (LeftCenter:  %request, 1, slab, 24%)
+  (Center:      %request, 1, brick, 15,
+                          2, track, 8,
+                          3, glowstone, 1%)
+  (RightCenter: %request, 1, slab, 24%)
+  (Right:       %request, 1, brick, 18,
+                          2, bars,  14%)
+)=%stock%
+
+-- routine to dig 1 space forward
+-- turtles should be facing forward at top of tunnel
+(
+  (Left:         Mf Md3)
+  (LeftCenter:   Mf Md3 Dd)
+  (Center:       Mf Md4 Dd)
+  (RightCenter:  Mf Md3 Dd)
+  (Right:        Mf Md3)
+)=%dig%
+
+-- routine to place normal section
+-- turtles should be at bottom of tunnel
+(
+  (Left:        rr s1 Bf u s2 Bf u Bf u s1 Bf ll)
+  (LeftCenter:  rr f s1 Bd u3 Bd b Bf ll)
+  (Center:      rr f s1 Bd u s2 Bd u2 s1 Bu b u rr)
+  (RightCenter: ll f s1 Bd u3 Bd b Bf rr)
+  (Right:       ll s1 Bf u s2 Bf u Bf u s1 Bf rr)
+)=%normal%
+
+-- routine to place pillar and light section
+-- turtles should be at bottom of tunnel
+(
+  (Left:        rr s1 Bf u Bf u Bf u Bf ll)
+  (LeftCenter:  rr f s1 Bd u3 Bd b Bf ll)
+  (Center:      rr f s1 Bd u s2 Bd u2 s3 Bu b u rr)
+  (RightCenter: ll f s1 Bd u3 Bd b Bf rr)
+  (Right:       ll s1 Bf u Bf u Bf u Bf rr)
+)=%pillar%
+
+-- dig and build loop
+(
+%stock%
+(%dig% %normal%) 7
+ %dig% %pillar%
+f8
+)8

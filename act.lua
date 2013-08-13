@@ -492,7 +492,9 @@ local function varString(v)
       return varType[v.vartype]..v.name
     end
   else
-    if v:find("^[%u%l%d_]+$") then
+    if type(v) == "number" then
+      return tostring(v)
+    elseif v:find("^[%u%l%d_]+$") then
       return v
     else
       return string.format("%q", v)
@@ -859,7 +861,7 @@ function interpret(ast, env)
   elseif ast.action then
     if ast.variable and ast.variable.vartype == "ext" then
       registerExtension(ast.variable.name, function ()
-        return interpret{action=ast.action}
+        return interpret({action=ast.action}, env)
       end)
       return 1, true
     else
