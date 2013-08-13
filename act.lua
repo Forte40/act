@@ -425,7 +425,7 @@ end)
 lang.token = L("[%u%l%d_]+")
 lang.numvar = S("#", "[%u%l]", P{vartype="num", name=2})
 lang.boolvar = S("%$", "[%u%l]", P{vartype="bool", name=2})
-lang.extvar = S("%%", lang.token, P{vartype="ext", name=2})
+lang.extvar = S("%%", lang.token, "%%", P{vartype="ext", name=2})
 lang.worker = S(lang.token, ":", P{1})
 lang.number = C("%*", lang.float, lang.int, lang.numvar)
 lang.variable = S("=", C(lang.numvar, lang.boolvar, lang.extvar), P{2})
@@ -483,10 +483,14 @@ lang.repeater = S(M(lang.int), M(lang.joiner), "%)", M(lang.number), P{repeatlin
 
 local planContainer = {seq = {"{", "}"},
                  par = {"(", ")"}}
-local varType = {num="#", bool="$", ext="%"}
+local varType = {num="#", bool="$"}
 local function varString(v)
   if type(v) == "table" then
-    return varType[v.vartype]..v.name
+    if v.vartype == "ext" then
+      return "%"..v.name.."%"
+    else
+      return varType[v.vartype]..v.name
+    end
   else
     return string.format("%q", v)
   end
@@ -852,6 +856,7 @@ function interpret(ast, env)
       registerExtension(ast.variable.name, function ()
         return interpret{action=ast.action}
       end)
+      return 1, true
     else
       local predicate = ast.predicate
       local count = ast.count or 1
