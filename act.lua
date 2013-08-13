@@ -753,6 +753,7 @@ local tExtensions = {
               io.read()
             end
           else
+            found = true
             print(" go it")
           end
         end
