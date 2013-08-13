@@ -733,6 +733,27 @@ local tHandlers = {
 local tExtensions = {
   ["gps"] = function (getFacing)
     return 1, turtle.gps(getFacing)
+  end,
+  ["request"] = function (...)
+    for r = 1, arg.n, 3 do
+      local slot, desc, count = arg[r], arg[r+1], arg[r+2]
+      if slot and desc and count then
+        slot = tonumber(slot)
+        if not slot then break end
+        count = tonumber(count)
+        if not count then break end
+        io.write("checking for "..tostring(count).." "..desc.." in slot "..tostring(slot))
+        local found = false
+        while not found do
+          if turtle.getItemCount(slot) < count then
+            -- wait for inventory event
+            local event = os.pullEvent("turtle_inventory")
+          else
+            print(" go it")
+          end
+        end
+      end
+    end
   end
 }
 
