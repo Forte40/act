@@ -9,6 +9,10 @@ local branch = "master"
 
 local files = {
   {
+    name = "act-install",
+    url = "https://raw.github.com/Forte40/act/"..branch.."/act.lua"
+  },
+  {
     name = "act",
     folder = "apis",
     url = "https://raw.github.com/Forte40/act/"..branch.."/act.lua"

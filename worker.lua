@@ -27,6 +27,7 @@ end
 
 os.loadAPI("apis/act")
 
+print("worker "..name.." online")
 while true do
   local event, modemSide, senderChannel, replyChannel, message, senderDistance = os.pullEvent("modem_message")
   local pos = message:find("@")
@@ -34,6 +35,7 @@ while true do
     local worker = message:sub(1, pos - 1)
     if worker == name then
       local plan = message:sub(pos + 1)
+      print(plan)
       act.act(plan, {worker=name, modem=modem, channel=channel, replyChannel=replyChannel})
       if replyChannel then
         modem.transmit(replyChannel, channel, name)

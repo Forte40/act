@@ -492,7 +492,11 @@ local function varString(v)
       return varType[v.vartype]..v.name
     end
   else
-    return string.format("%q", v)
+    if v:find("^[%u%l%d_]+$") then
+      return v
+    else
+      return string.format("%q", v)
+    end
   end
 end
 function compile(ast)
@@ -548,7 +552,7 @@ function compile(ast)
   elseif ast.extension then
     local src = "%" .. ast.extension
     for i, v in ipairs(ast.params) do
-      src = src .. varString(v)
+      src = src .. "," .. varString(v)
     end
     src = src .. "%"
     return src
@@ -1006,7 +1010,7 @@ end
 -- debugging -------------------------------------------------------------------
 
 function tprint (tbl, indent, max)
-  if not max then max = 5 end
+  if not max then max = 12 end
   if not indent then indent = 0 end
   if indent >= max then return end
   if tbl == nil then
