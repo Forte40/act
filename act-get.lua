@@ -1,16 +1,11 @@
 --http://pastebin.com/5CuUMxqr
 
-if not http then
-  print("No access to web")
-  return
-end
-
 local branch = "master"
 
 local files = {
   {
-    name = "act-install",
-    url = "https://raw.github.com/Forte40/act/"..branch.."/act.lua"
+    name = "act-get",
+    url = "https://raw.github.com/Forte40/act/"..branch.."/act-get.lua"
   },
   {
     name = "act",
@@ -30,6 +25,34 @@ local files = {
     url = "https://raw.github.com/Forte40/act/"..branch.."/worker.lua"
   }
 }
+
+local scripts = {"ethos_rail"}
+
+local cmd = ...
+if cmd == "list" then
+  textutils.pagedPrint(table.concat(scripts, "\n"), "...")
+elseif cmd then
+  local found = false
+  for _, name in ipairs(scripts) do
+    if cmd == name then
+      found = true
+      break
+    end
+  end
+  if found then
+    files = {
+      name = cmd..".act",
+      url = "https://raw.github.com/Forte40/act/"..branch.."/"..cmd..".act"
+    }
+  else
+    print("script '"..cmd.."' does not exists")
+  end
+end
+
+if not http then
+  print("No access to web")
+  return
+end
 
 for _, file in ipairs(files) do
   local path
@@ -77,4 +100,3 @@ for _, file in ipairs(files) do
   end
   os.sleep(0.1)
 end
-print("Finished")

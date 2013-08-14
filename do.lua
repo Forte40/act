@@ -154,6 +154,12 @@ elseif macro[cmd] then
   local plan = macro[cmd]
   print(plan)
   act.act(plan)
+elseif fs.exists(cmd..".act") then
+  local f = fs.open(cmd..".act", "r")
+  local plan = f.readAll()
+  f.close()
+  print("using script '"..cmd..".act'")
+  act.act(plan)
 else
   local plan
   if cmd:sub(1,2) == "[[" then
