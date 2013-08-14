@@ -44,7 +44,7 @@ elseif cmd then
     files = {
       {
         name = cmd..".act",
-        url = "https://raw.github.com/Forte40/act/"..branch.."/"..cmd..".act"
+        url = "https://raw.github.com/Forte40/act/"..branch.."/examples/"..cmd..".act"
       }
     }
   else
