@@ -71,8 +71,8 @@
 
 -- dig and build loop
 (
-%stock%
-(%dig% %normal%) 7
- %dig% %pillar%
-f8
-)8
+  %stock%
+  (%dig% %normal%) 7 -- build 7 normal sections
+   %dig% %pillar%    -- build 1 pillar and light section
+  f8  -- have forman move forward to workers to stay in range
+)8    -- build 8 sets of sections

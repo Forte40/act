@@ -1,9 +1,5 @@
 -- movement tracking -----------------------------------------------------------
 
-local coord_change = {[0] = { 0,  1}, -- south / forward
-                      [1] = {-1,  0}, -- west  / right
-                      [2] = { 0, -1}, -- north / behind
-                      [3] = { 1,  0}} -- east  / left
 -- check if API already loaded
 if turtle and not turtle.act then
   turtle.act = true
@@ -71,16 +67,97 @@ if turtle and not turtle.act then
   turtle.z = 0
   turtle.facing = 0
   turtle.selected = 0
-  -- waypoints
-  turtle.waypoint = {}
   -- how much to change x and z when moving in a direction                      
+  local coord_change = {[0] = { 0,  1}, -- south / forward
+                        [1] = {-1,  0}, -- west  / right
+                        [2] = { 0, -1}, -- north / behind
+                        [3] = { 1,  0}} -- east  / left
 
-  -- helper functions
-  turtle.setCoords = function (x, y, z, facing)
+  turtle.setLocation = function (x, y, z, facing)
     turtle.x = x or 0
     turtle.y = y or 0
     turtle.z = z or 0
     turtle.facing = facing or 0
+  end
+
+  -- waypoints
+  turtle.waypoint = {}
+
+  turtle.setWaypoint = function (name, useFacing)
+    if useFacing == nil then useFacing = true end
+    if useFacing then
+      turtle.waypoint[name] = {x=turtle.x, y=turtle.y, z=turtle.z, facing=turtle.facing}
+    else
+      turtle.waypoint[name] = {x=turtle.x, y=turtle.y, z=turtle.z}
+    end
+  end
+
+  turtle.go = function (x, y, z, facing, priority)
+    if type(x) == "string" then
+      -- go to waypoint
+      if turtle.waypoint[x] then
+        x, y, z, facing = unpack(turtle.waypoint[x])
+      end
+    end
+    -- go to coordinates
+    if not type(priority) == "string" or
+        not priority:find("x") or
+        not priority:find("y") or
+        not priority:find("z") or
+        #priority ~= 3 then
+      priority = "yxz"
+    end
+
+    for c in priority:gmatch(".") do
+      if c == "y" then
+        -- move up or down
+        local dy = waypoint.y - turtle.y
+        if dy > 0 then
+          for i = 1, dy do
+            goUp()
+          end
+        elseif dy < 0 then
+          for i = 1, -dy do
+            goDown()
+          end
+        end
+      elseif c == "x" then
+        -- move east or west
+        local dx = waypoint.x - turtle.x
+        if dx > 0 then -- east
+          turtle.face(3)
+          for i = 1, dx do
+            goForward()
+          end
+        elseif dx < 0 then -- west
+          turtle.face(1)
+          for i = 1, -dx do
+            goForward()
+          end
+        end
+      elseif c == "z" then
+        -- move north or south
+        local dz = waypoint.z - turtle.z
+        if dz > 0 then -- south
+          turtle.face(0)
+          for i = 1, dz do
+            goForward()
+          end
+        elseif dz < 0 then -- north
+          turtle.face(2)
+          for i = 1, -dz do
+            goForward()
+          end
+        end
+      end
+    end
+
+    -- face proper direction
+    if facing then
+      turtle.face(waypoint.facing)
+    end
+
+    return true
   end
 
   turtle.gps = function (getFacing)
@@ -95,15 +172,15 @@ if turtle and not turtle.act then
           if dx ~= nil then
             if x == dx then
               if z < dz then
-                turtle.facing = 0
+                turtle.facing = 0  --south
               else
-                turtle.facing = 2
+                turtle.facing = 2  --north
               end
             else
               if x < dx then
-                turtle.facing = 3
+                turtle.facing = 3  --east
               else
-                turtle.facing = 1
+                turtle.facing = 1  --west
               end
             end
           end
@@ -431,8 +508,8 @@ lang.number = C("%*", lang.float, lang.int, lang.numvar)
 lang.variable = S("=", C(lang.numvar, lang.boolvar, lang.extvar), P{2})
 lang.predicate = L("[%?~]")
 lang.locationaction = C(
-  S("G<", lang.int, ",", lang.int, ",", lang.int, M(S(",", lang.int, P{2})), ">", P{waypointtype="G", x=2, y=4, z=6, facing=7}),
-  S("[Gw]", "<", lang.token, ">", P({waypointtype=1, waypoint=3}))
+  S("G<", lang.int, ",", lang.int, ",", lang.int, M(S(",", lang.int, P{2})), M(S(",", lang.token, P{2})), ">", P{waypointtype="G", x=2, y=4, z=6, facing=7, priority=8}),
+  S("[Gw]", "<", lang.token, M(S(",", lang.token, P{2})), ">", P({waypointtype=1, waypoint=3, priority=4}))
 )
 lang.param2action = S("t", lang.int, ",", lang.int, P{action=1, param1=2, param2=4}) 
 lang.paramaction = S(C("[cegostz]", "[E][fud]"), C(lang.number, lang.string), P{action=1, param=2})
@@ -917,60 +994,16 @@ function interpret(ast, env)
   elseif ast.waypointtype then
     if ast.waypointtype == "w" then
       -- set waypoint
-      turtle.waypoint[ast.waypoint] = {x=turtle.x, y=turtle.y, z=turtle.z, facing=turtle.facing}
+      turtle.setWaypoint(ast.waypoint)
     elseif ast.waypointtype == "G" then
-      -- goto waypoint
       local waypoint = {}
       if ast.waypoint then
-        waypoint = turtle.waypoint[ast.waypoint]
-        if not waypoint then
-          print("unknown waypoint: " .. ast.waypoint)
-          return 0, false
-        end
+        -- go to waypoint
+        turtle.go(ast.waypoint, ast.priority)
       else
-        waypoint.x = ast.x
-        waypoint.y = ast.y
-        waypoint.z = ast.z
-        waypoint.facing = ast.facing or turtle.facing
+        -- go to location
+        turtle.go(ast.x, ast.y, ast.z, ast.facing or turtle.facing, ast.priority)
       end
-      -- move up or down
-      local dy = waypoint.y - turtle.y
-      if dy > 0 then
-        for i = 1, dy do
-          goUp()
-        end
-      elseif dy < 0 then
-        for i = 1, -dy do
-          goDown()
-        end
-      end
-      -- move east or west
-      local dx = waypoint.x - turtle.x
-      if dx > 0 then -- east
-        turtle.face(3)
-        for i = 1, dx do
-          goForward()
-        end
-      elseif dx < 0 then -- west
-        turtle.face(1)
-        for i = 1, -dx do
-          goForward()
-        end
-      end
-      -- move north or south
-      local dz = waypoint.z - turtle.z
-      if dz > 0 then -- south
-        turtle.face(0)
-        for i = 1, dz do
-          goForward()
-        end
-      elseif dz < 0 then -- north
-        turtle.face(2)
-        for i = 1, -dz do
-          goForward()
-        end
-      end
-      turtle.face(waypoint.facing)
       return 1, true
     end
   elseif ast.extension then

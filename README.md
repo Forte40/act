@@ -114,13 +114,13 @@ Write scripts in seconds, instead of hours! Turtle mini-language for making scri
 
           Of course we will run out saplings or bonemeal at some point.  Also, we can only chop trees of height 10 or less.  Let's fix that.  Instead of moving up only 10, we will move up until we don't detect other blocks.  Assuming there is dirt under the tree, we can just move down until blocked as well.
 
-          	do (Df f (?Hu Du u)* (?Hd d)* b s1 Pf s2 Pf3)*
+          	do (Df f (?Hu Du u)* (~Hd d)* b s1 Pf s2 Pf3)*
 
           The '?Hu' action will check if there is a block above the turtle (detectUp) and if there is, continue the loop.  Otherwise it will break out of the loop and move to the next action.
 
           Of course we are wasting fuel by digging through leaves, so we can try and compare the logs to stop a little sooner.  Assuming slot 3 is empty or has logs when we start we can do the following:
 
-          	do (Df f s3 (?Cu Du u)* (?Hd d)* b s1 Pf s2 Pf3)*
+          	do (Df f s3 (?Cu Du u)* (~Hd d)* b s1 Pf s2 Pf3)*
 
           Nice.
 
@@ -143,7 +143,7 @@ Write scripts in seconds, instead of hours! Turtle mini-language for making scri
 
 		With these commands we can shorten the tree script a little.  Instead of digging and then moving with 2 actions, we can use one.  Also, if a sheep wanders under us while chopping, we can smack it out of the way.
 
-			do (Mf s3 (?Cu Mu)* (?Hd d)* s1 Pf s2 Pf3)*
+			do (Mf s3 (?Cu Mu)* (~Hd d)* s1 Pf s2 Pf3)*
 
 	4)  Waypoints
 
@@ -195,7 +195,7 @@ Write scripts in seconds, instead of hours! Turtle mini-language for making scri
 		    do [[
 		      w<home>                               -- set waypoint
 		      (                                     -- chopping loop start
-		      	%request,1,saplings,1,2,bonemean,3% -- get stuff
+		      	%request,1,saplings,1,2,bonemeal,3% -- get stuff
 		      	Mf s3 (?Cu Mu)*                     -- chop tree
 		      	G<home>                             -- go back home
 		      	s1 Bf s2 Bf3                        -- plant new tree
@@ -284,6 +284,7 @@ Write scripts in seconds, instead of hours! Turtle mini-language for making scri
 			for name, waypoint in pairs(turtle.waypoint) do
 			    print(name, waypoint.x, waypoint.y, waypoint.z, waypoint.facing)
 			end
+			turtle.go(0,0,0,0)
 
 
 3)  Installation
@@ -303,7 +304,7 @@ Write scripts in seconds, instead of hours! Turtle mini-language for making scri
 	  do         : CLI for ad hoc and macro mode turtle commands
 	  forman     : controller script for multi-turtle scripts
 	  worker     : worker script for multi-turtle scripts
-	  startup    : startup script for initializing turtles for a multi-turtle script, act and do. Copy both files to the turtle.
+	  startup    : startup script for initializing turtles for a multi-turtle script, act and do.
 
 4)  History
 
