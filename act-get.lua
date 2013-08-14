@@ -42,8 +42,10 @@ elseif cmd then
   end
   if found then
     files = {
-      name = cmd..".act",
-      url = "https://raw.github.com/Forte40/act/"..branch.."/"..cmd..".act"
+      {
+        name = cmd..".act",
+        url = "https://raw.github.com/Forte40/act/"..branch.."/"..cmd..".act"
+      }
     }
   else
     print("script '"..cmd.."' does not exists")
