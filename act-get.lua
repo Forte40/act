@@ -30,7 +30,7 @@ local scripts = {"ethos_rail"}
 
 local cmd = ...
 if cmd == "list" then
-  textutils.pagedPrint(table.concat(scripts, "\n"), "...")
+  textutils.pagedPrint(table.concat(scripts, "\n"))
 elseif cmd then
   local found = false
   for _, name in ipairs(scripts) do
