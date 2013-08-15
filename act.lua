@@ -306,14 +306,15 @@ end
 
 function saveFile(fileName, table)
   local f = io.open(".act." .. fileName, "w")
-  f:write(fileName .. " =\n")
   f:write(serialize(table))
   f:close()
 end
 
 function loadFile(fileName)
-  local f = loadfile(".act." .. fileName)
-  if f then f() end
+  local f = fs.open(".act."..fileName)
+  local s = f.readAll()
+  f.close()
+  return textutils.unserialize(s)
 end
 
 -- convenience functions for building a language -------------------------------
@@ -973,7 +974,7 @@ function interpret(ast, env, depth)
         if not env.pointer[depth] or not env.pointer[depth].sent then
           local result = sendViaModem(ast, env)
           env.pointer[depth] = {sent=true}
-          act.saveFile("env", env)
+          saveFile("env", env)
           return result and 1 or 0, result
         end
       end
@@ -986,14 +987,14 @@ function interpret(ast, env, depth)
       if not ptr then
         ptr = {step=1, join=false}
         env.pointer[depth] = ptr
-        act.saveFile("env", env)
+        saveFile("env", env)
       end
       while true do
         if not ptr.join then
           if ptr.step > #ast.actions then
             ptr.step = 1
             ptr.join = true
-            act.saveFile("env", env)
+            saveFile("env", env)
           else
             rep, succ = interpret(ast.actions[ptr.step], env, depth + 1)
           end
@@ -1013,7 +1014,7 @@ function interpret(ast, env, depth)
           end
         end
         ptr.step = ptr.step + 1
-        act.saveFile("env", env)
+        saveFile("env", env)
       end
       return #ast.actions + #ast.join, succ
     end
@@ -1031,7 +1032,7 @@ function interpret(ast, env, depth)
       if not ptr then
         ptr = {count=getValue(env, ast.count) or 1, iter=1}
         env.pointer[depth] = ptr
-        act.saveFile("env", env)
+        saveFile("env", env)
       end
       local i = 0
       local rep = 0
@@ -1042,7 +1043,7 @@ function interpret(ast, env, depth)
             local p = getValue(env, ast.param)
             succ = func(p)
             ptr.iter = ptr.iter + 1
-            act.saveFile("env", env)
+            saveFile("env", env)
           end
         elseif ast.param1 then
           if ptr.iter == 1 then
@@ -1050,7 +1051,7 @@ function interpret(ast, env, depth)
             local p2 = getValue(env, ast.param2)
             succ = func(p1, p2)
             ptr.iter = ptr.iter + 1
-            act.saveFile("env", env)
+            saveFile("env", env)
           end
         else
           while true do
@@ -1058,7 +1059,7 @@ function interpret(ast, env, depth)
               succ = func()
               if not succ then break end
               ptr.iter = ptr.iter + 1
-              act.saveFile("env", env)
+              saveFile("env", env)
             else
               break
             end
@@ -1070,7 +1071,7 @@ function interpret(ast, env, depth)
             rep, succ = interpret(ast.action, env, depth + 1)
             if not succ then break end
             ptr.iter = ptr.iter + 1
-            act.saveFile("env", env)
+            saveFile("env", env)
           else
             break
           end

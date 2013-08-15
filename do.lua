@@ -17,10 +17,8 @@ end
 
 os.loadAPI("apis/act")
 
-act.loadFile("history")
-history = history or {}
-act.loadFile("macro")
-macro = macro or {}
+local history = act.loadFile("history") or {}
+local macro = act.loadFile("macro") or {}
 
 local tArgs = { ... }
 if #tArgs == 0 then
