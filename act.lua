@@ -883,6 +883,16 @@ function getWorkers(ast)
   return workers
 end
 
+function getValue(env, var)
+  if type(var) == "table" then
+    return env[var.vartype][var.name]
+  elseif var == "*" then
+    return math.huge
+  else
+    return var
+  end
+end
+
 function interpret(ast, env)
   env = env or {}
   env.num = env.num or {}
@@ -944,21 +954,19 @@ function interpret(ast, env)
       return 1, true
     else
       local predicate = ast.predicate
-      local count = ast.count or 1
-      if ast.count and type(ast.count) == "table" then
-        count = env[ast.count.vartype][ast.count.name] or 0
-      elseif ast.count == "*" then
-        count = math.huge
-      end
+      local count = getValue(env, ast.count) or 1
       local i = 0
       local succ = true
       local rep = 0
       if type(ast.action) == "string" then
         local func = tHandlers[ast.action]
         if ast.param then
-          succ = func(ast.param)
+          local p = getValue(env, ast.param)
+          succ = func(p)
         elseif ast.param1 then
-          succ = func(ast.param1, ast.param2)
+          local p1 = getValue(env, ast.param1)
+          local p2 = getValue(env, ast.param2)
+          succ = func(p1, p2)
         else
           while i < count do
             succ = func()
