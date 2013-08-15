@@ -275,6 +275,47 @@ if turtle and not turtle.act then
   end
 end
 
+-- serialize functions ---------------------------------------------------------
+
+function serialize(o, indent)
+  local s = ""
+  indent = indent or ""
+  if type(o) == "number" then
+    s = s .. indent .. tostring(o)
+  elseif type(o) == "string" then
+    if o:find("\n") then
+      s = s .. indent .. "[[\n" .. o:gsub("\"", "\\\"") .. "]]"
+    else
+      s = s .. indent .. string.format("%q", o)
+    end
+  elseif type(o) == "table" then
+    s = s .. "{\n"
+    for k,v in pairs(o) do
+      if type(v) == "table" then
+        s = s .. indent .. "  [" .. serialize(k) .. "] = " .. serialize(v, indent .. "  ") .. ",\n"
+      else
+        s = s .. indent .. "  [" .. serialize(k) .. "] = " .. serialize(v) .. ",\n"
+      end
+    end
+    s = s .. indent .. "}"
+  else
+    error("cannot serialize a " .. type(o))
+  end
+  return s
+end
+
+function saveFile(fileName, table)
+  local f = io.open(".act." .. fileName, "w")
+  f:write(fileName .. " =\n")
+  f:write(serialize(table))
+  f:close()
+end
+
+function loadFile(fileName)
+  local f = loadfile(".act." .. fileName)
+  if f then f() end
+end
+
 -- convenience functions for building a language -------------------------------
 
 local function nopprocess(ast)
@@ -893,111 +934,163 @@ function getValue(env, var)
   end
 end
 
-function interpret(ast, env)
+local function sendViaModem(ast, env)
+  if env.modem and env.channel and env.replyChannel then
+    if env.workers[ast.worker] == nil then
+      env.workers[ast.worker] = true
+    elseif env.workers[ast.worker] == false then
+      local event = os.pullEvent("modem_message", nil, nil, nil, ast.worker)
+      env.workers[ast.worker] = true
+    end
+    env.modem.transmit(env.channel, env.replyChannel, ast.worker.."@"..compile(ast))
+    env.workers[ast.worker] = false
+    if ast.plantype ~= "par" then
+      -- wait for response
+      local event = os.pullEvent("modem_message", nil, nil, nil, ast.worker)
+      env.workers[ast.worker] = true
+    end
+    return true
+  else
+    print("cannot send modem message to "..ast.worker)
+    return false
+  end
+end
+
+function interpret(ast, env, depth)
+  depth = depth or 1
   env = env or {}
+  env.depth = depth
   env.num = env.num or {}
   env.bool = env.bool or {}
-  local waitWorkers = false
+  env.pointer = env.pointer or {}
   if not env.workers then
     env.workers = {}
-    waitWorkers = true
   end
   if ast.actions then
-    local succ = true
-    local count = 0
     if ast.worker and env.worker ~= ast.worker then
       if env.executing then
         -- send via modem
-        if env.modem and env.channel and env.replyChannel then
-          if env.workers[ast.worker] == nil then
-            env.workers[ast.worker] = true
-          elseif env.workers[ast.worker] == false then
-            local event = os.pullEvent("modem_message", nil, nil, nil, ast.worker)
-            env.workers[ast.worker] = true
-          end
-          env.modem.transmit(env.channel, env.replyChannel, ast.worker.."@"..compile(ast))
-          env.workers[ast.worker] = false
-          if ast.plantype ~= "par" then
-            -- wait for response
-            local event = os.pullEvent("modem_message", nil, nil, nil, ast.worker)
-            env.workers[ast.worker] = true
-          end
-        else
-          print("cannot send modem message to "..ast.worker)
+        if not env.pointer[depth] or not env.pointer[depth].sent then
+          local result = sendViaModem(ast, env)
+          env.pointer[depth] = {sent=true}
+          act.saveFile("env", env)
+          return result and 1 or 0, result
         end
       end
+      return 1, true
     else
+      local succ = true
+      local count = 0
       env.executing = true
-      for i, v in ipairs(ast.actions) do
-        rep, succ = interpret(v, env)
-        if not succ then
-          break
-        end
-        count = count + 1
+      local ptr = env.pointer[depth]
+      if not ptr then
+        ptr = {step=1, join=false}
+        env.pointer[depth] = ptr
+        act.saveFile("env", env)
       end
-      if ast.join and env.iter < env.count then
-        for i, v in ipairs(ast.join) do
-          rep, succ = interpret(v, env)
-          if not succ then
-            break
+      while true do
+        if not ptr.join then
+          if ptr.step > #ast.actions then
+            ptr.step = 1
+            ptr.join = true
+            act.saveFile("env", env)
+          else
+            rep, succ = interpret(ast.actions[ptr.step], env, depth + 1)
           end
-          count = count + 1
         end
+        if ptr.join then
+          if ptr.step > #ast.join then
+            break
+          else
+            rep, succ = interpret(ast.join[ptr.step], env, depth + 1)
+          end
+        end
+        if not succ then
+          if ptr.join then
+            return #ast.actions + ptr.step, succ
+          else
+            return ptr.step, succ
+          end
+        end
+        ptr.step = ptr.step + 1
+        act.saveFile("env", env)
       end
+      return #ast.actions + #ast.join, succ
     end
-    return count, succ
   elseif ast.action then
     if ast.variable and ast.variable.vartype == "ext" then
       registerExtension(ast.variable.name, function ()
-        return interpret({action=ast.action}, env)
+        return interpret({action=ast.action}, env, env.depth + 1)
       end)
       return 1, true
     else
       local predicate = ast.predicate
-      local count = getValue(env, ast.count) or 1
-      local i = 0
       local succ = true
+      local rep = 0
+      local ptr = env.pointer[depth]
+      if not ptr then
+        ptr = {count=getValue(env, ast.count) or 1, iter=1}
+        env.pointer[depth] = ptr
+        act.saveFile("env", env)
+      end
+      local i = 0
       local rep = 0
       if type(ast.action) == "string" then
         local func = tHandlers[ast.action]
         if ast.param then
-          local p = getValue(env, ast.param)
-          succ = func(p)
+          if ptr.iter == 1 then
+            local p = getValue(env, ast.param)
+            succ = func(p)
+            ptr.iter = ptr.iter + 1
+            act.saveFile("env", env)
+          end
         elseif ast.param1 then
-          local p1 = getValue(env, ast.param1)
-          local p2 = getValue(env, ast.param2)
-          succ = func(p1, p2)
+          if ptr.iter == 1 then
+            local p1 = getValue(env, ast.param1)
+            local p2 = getValue(env, ast.param2)
+            succ = func(p1, p2)
+            ptr.iter = ptr.iter + 1
+            act.saveFile("env", env)
+          end
         else
-          while i < count do
-            succ = func()
-            if not succ then break end
-            i = i + 1
+          while true do
+            if ptr.iter <= count then
+              succ = func()
+              if not succ then break end
+              ptr.iter = ptr.iter + 1
+              act.saveFile("env", env)
+            else
+              break
+            end
           end
         end
       else
-        env.count = count
-        while i < count do
-          env.iter = i + 1
-          rep, succ = interpret(ast.action, env)
-          if not succ then break end
-          i = i + 1
+        while true do
+          if ptr.iter <= ptr.count then
+            rep, succ = interpret(ast.action, env, depth + 1)
+            if not succ then break end
+            ptr.iter = ptr.iter + 1
+            act.saveFile("env", env)
+          else
+            break
+          end
         end
       end
       if ast.variable then
         if ast.variable.vartype == "num" then
-          env["num"][ast.variable.name] = i
+          env["num"][ast.variable.name] = ptr.iter - 1
         elseif ast.variable.vartype == "bool" then
           env["bool"][ast.variable.name] = succ
         end
       end
       if ast.predicate then
         if ast.predicate == "?" then
-          return i, succ
+          return ptr.iter - 1, succ
         elseif ast.predicate == "~" then
-          return i, not succ
+          return ptr.iter - 1, not succ
         end
       else
-        return i, true
+        return ptr.iter - 1, true
       end
     end
   elseif ast.waypointtype then

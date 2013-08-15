@@ -4,33 +4,6 @@
 local historyFile = "history"
 local macroFile = "macro"
 
-local function serialize(o, indent)
-  local s = ""
-  indent = indent or ""
-  if type(o) == "number" then
-    s = s .. indent .. tostring(o)
-  elseif type(o) == "string" then
-    if o:find("\n") then
-      s = s .. indent .. "[[\n" .. o:gsub("\"", "\\\"") .. "]]"
-    else
-      s = s .. indent .. string.format("%q", o)
-    end
-  elseif type(o) == "table" then
-    s = s .. "{\n"
-    for k,v in pairs(o) do
-      if type(v) == "table" then
-        s = s .. indent .. "  [" .. serialize(k) .. "] = " .. serialize(v, indent .. "  ") .. ",\n"
-      else
-        s = s .. indent .. "  [" .. serialize(k) .. "] = " .. serialize(v) .. ",\n"
-      end
-    end
-    s = s .. indent .. "}"
-  else
-    error("cannot serialize a " .. type(o))
-  end
-  return s
-end
-
 function flatten(list)
   if type(list) ~= "table" then return {list} end
   local flat_list = {}
@@ -42,21 +15,11 @@ function flatten(list)
   return flat_list
 end
 
-local function saveFile(fileName, table)
-  local f = io.open(".act." .. fileName, "w")
-  f:write(fileName .. " =\n")
-  f:write(serialize(table))
-  f:close()
-end
+os.loadAPI("apis/act")
 
-local function loadFile(fileName)
-  local f = loadfile(".act." .. fileName)
-  if f then f() end
-end
-
-loadFile("history")
+act.loadFile("history")
 history = history or {}
-loadFile("macro")
+act.loadFile("macro")
 macro = macro or {}
 
 local tArgs = { ... }
@@ -68,12 +31,11 @@ if #tArgs == 0 then
   print( "" )
   print( "Saved Commands:" )
   for key, value in pairs(macro) do
-    print("       "..key.." : "..serialize(value))
+    print("       "..key.." : "..act.serialize(value))
   end
   return
 end
 
-os.loadAPI("apis/act")
 local cmd = tArgs[1]
 if cmd == "history" then
   if #history > 0 then
