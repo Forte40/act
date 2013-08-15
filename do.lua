@@ -55,7 +55,7 @@ elseif cmd == "save" then
     if macro[macro_name] == nil then
       if #history > 0 then
         macro[macro_name] = history[#history]
-        saveFile(macroFile, macro)
+        act.saveFile(macroFile, macro)
       else
         print("no history")
       end
@@ -105,7 +105,7 @@ elseif cmd == "macro" then
       end
       local plan = table.concat(flatten(lines), "\n").."\n"
       macro[macro_name] = plan
-      saveFile(macroFile, macro)
+      act.saveFile(macroFile, macro)
     else
       print("macro name is not unique")
     end
@@ -150,7 +150,7 @@ else
       table.remove(history, 1)
     end
     table.insert(history, plan)
-    saveFile(historyFile, history)
+    act.saveFile(historyFile, history)
     act.interpret(ast)
   else
     print("Error in act script:\n")
