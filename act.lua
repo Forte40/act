@@ -486,7 +486,7 @@ end
 
 local pre = {}
 pre.comment = S("%-%-[^\r\n]*[\r\n]*")
-pre.space = C("[ \r\n]+", pre.comment)
+pre.space = C("[ \t\r\n]+", pre.comment)
 pre.string = S('"',O(C('\\"', '[^"]'), P()),'"', P())
 pre.line = S(Z(pre.space), C(pre.string, '[^ \r\n"]+'), Z(pre.space), P{2})
 pre.source = O(pre.line, P())

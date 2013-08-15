@@ -2,7 +2,7 @@
 
 w<home>           -- set home position
 Df c e Gf          -- dig under tree and fuel up
-(?Hu Mu)* (~Hd Gd) -- get logs and return
+(?Hu Mu)* (~Hd Gd)* -- get logs and return
                   -- make chest, eat the rest
 c t2,1 t3,1 t5,1 t7,1 t9,1 t10,1 t11,1 s16 c s1 e
 
@@ -19,7 +19,7 @@ c t2,1 t3,1 t5,1 t7,1 t9,1 t10,1 t11,1 s16 c s1 e
 	r %Vf%4 r %Vf%2        -- return to home
 )=%vacuum%
 
-z70 s15 %vacuum%     -- wait for leaf decay and vacuum for saplings
+rr z70 s15 %vacuum%     -- wait for leaf decay and vacuum for saplings
 Pf                   -- plant first tree
 s14 Dd s16 Pd s15 Ed -- place and fill sapling chest
 
