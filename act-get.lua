@@ -26,7 +26,7 @@ local files = {
   }
 }
 
-local scripts = {"ethos_rail"}
+local scripts = {"ethos_rail", "tree_farm"}
 
 local cmd = ...
 if cmd == "list" then
