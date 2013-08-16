@@ -343,8 +343,8 @@ if turtle and not turtle.act then
   end
 
   turtle._refuel = turtle.refuel
-  turtle.refuel = function (amount)
-    turtle._refuel(amount)
+  turtle.refuel = function (...)
+    turtle._refuel(...)
     turtle.fuel = turtle.getFuelLevel()
     turtle.saveLocation()
   end
