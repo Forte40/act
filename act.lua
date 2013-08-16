@@ -282,6 +282,8 @@ function serialize(o, indent)
   indent = indent or ""
   if type(o) == "number" then
     s = s .. indent .. tostring(o)
+  elseif type(o) == "boolean" then
+    s = s .. indent .. o and "true" or "false"
   elseif type(o) == "string" then
     if o:find("\n") then
       s = s .. indent .. "[[\n" .. o:gsub("\"", "\\\"") .. "]]"
@@ -311,10 +313,12 @@ function saveFile(fileName, table)
 end
 
 function loadFile(fileName)
-  local f = fs.open(".act."..fileName)
-  local s = f.readAll()
-  f.close()
-  return textutils.unserialize(s)
+  if fs.exists(".act."..fileName) then
+    local f = fs.open(".act."..fileName, "r")
+    local s = f.readAll()
+    f.close()
+    return textutils.unserialize(s)
+  end
 end
 
 -- convenience functions for building a language -------------------------------
@@ -992,11 +996,15 @@ function interpret(ast, env, depth)
       while true do
         if not ptr.join then
           if ptr.step > #ast.actions then
-            ptr.step = 1
-            ptr.join = true
-            saveFile("env", env)
+            if ast.join then
+              ptr.step = 1
+              ptr.join = true
+              saveFile("env", env)
+            end
+            break
           else
             rep, succ = interpret(ast.actions[ptr.step], env, depth + 1)
+            env.pointer[depth + 1] = nil
           end
         end
         if ptr.join then
@@ -1014,9 +1022,14 @@ function interpret(ast, env, depth)
           end
         end
         ptr.step = ptr.step + 1
+        env.pointer[depth + 1] = nil
         saveFile("env", env)
       end
-      return #ast.actions + #ast.join, succ
+      if ast.join then
+        return #ast.actions + #ast.join, succ
+      else
+        return #ast.actions, succ
+      end
     end
   elseif ast.action then
     if ast.variable and ast.variable.vartype == "ext" then
@@ -1055,7 +1068,7 @@ function interpret(ast, env, depth)
           end
         else
           while true do
-            if ptr.iter <= count then
+            if ptr.iter <= ptr.count then
               succ = func()
               if not succ then break end
               ptr.iter = ptr.iter + 1
@@ -1069,7 +1082,11 @@ function interpret(ast, env, depth)
         while true do
           if ptr.iter <= ptr.count then
             rep, succ = interpret(ast.action, env, depth + 1)
-            if not succ then break end
+            env.pointer[depth + 1] = nil
+            if not succ then
+              saveFile("env", env)
+              break
+            end
             ptr.iter = ptr.iter + 1
             saveFile("env", env)
           else
