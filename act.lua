@@ -321,6 +321,12 @@ function loadFile(fileName)
   end
 end
 
+function deleteFile(fileName)
+  if fs.exists(".act."..fileName) then
+    fs.delete(".act."..fileName)
+  end
+end
+
 -- convenience functions for building a language -------------------------------
 
 local function nopprocess(ast)
@@ -961,7 +967,27 @@ local function sendViaModem(ast, env)
   end
 end
 
-function interpret(ast, env, depth)
+function interpret(ast, env)
+  local f = fs.open("startup", "w")
+  f.write([[
+os.loadAPI("apis/act")
+local ast = act.loadFile("ast")
+if ast then
+  local env = act.loadFile("env")
+  if env then
+    print("resuming...")
+    act.interpret(ast, env)
+  end
+end
+]])
+  saveFile("ast", ast)
+  eval(ast, env, 0)
+  deleteFile("ast")
+  deleteFile("env")
+  fs.delete("startup")
+end
+
+function eval(ast, env, depth)
   depth = depth or 1
   env = env or {}
   env.depth = depth
@@ -1005,7 +1031,7 @@ function interpret(ast, env, depth)
               break
             end
           else
-            rep, succ = interpret(ast.actions[ptr.step], env, depth + 1)
+            rep, succ = eval(ast.actions[ptr.step], env, depth + 1)
             env.pointer[depth + 1] = nil
           end
         end
@@ -1013,7 +1039,7 @@ function interpret(ast, env, depth)
           if ptr.step > #ast.join then
             break
           else
-            rep, succ = interpret(ast.join[ptr.step], env, depth + 1)
+            rep, succ = eval(ast.join[ptr.step], env, depth + 1)
           end
         end
         if not succ then
@@ -1036,7 +1062,7 @@ function interpret(ast, env, depth)
   elseif ast.action then
     if ast.variable and ast.variable.vartype == "ext" then
       registerExtension(ast.variable.name, function ()
-        return interpret({action=ast.action}, env, env.depth + 1)
+        return eval({action=ast.action}, env, env.depth + 1)
       end)
       return 1, true
     else
@@ -1083,7 +1109,7 @@ function interpret(ast, env, depth)
       else
         while true do
           if ptr.iter <= ptr.count then
-            rep, succ = interpret(ast.action, env, depth + 1)
+            rep, succ = eval(ast.action, env, depth + 1)
             env.pointer[depth + 1] = nil
             if not succ then
               saveFile("env", env)
