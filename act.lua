@@ -80,6 +80,40 @@ if turtle and not turtle.act then
     turtle.facing = facing or 0
   end
 
+  turtle.saveLocation = function ()
+    saveFile("location", {x=turtle.x, y=turtle.y, z=turtle.z, facing=turtle.facing, fuel=turtle.getFuelLevel()})
+  end
+
+  turtle.loadLocation = function ()
+    local loc = loadFile("location")
+    turtle.x = loc.x
+    turtle.y = loc.y
+    turtle.z = loc.z
+    turtle.facing = loc.facing
+    turtle.fuel = loc.fuel
+  end
+
+  turtle.updateLocation = function ()
+    if not turtle.fuel then turtle.loadLocation() end
+    local move = loadFile("move")
+    if move then
+      local currFuel = turtle.getFuelLevel()
+      if turtle.fuel == currFuel then
+        return false -- no update occured
+      elseif turtle.fuel == currFuel + 1 then
+        turtle.update(move)
+        deleteFile("move")
+        return true -- location updated
+      else
+        -- server rollback?
+        error("possible server rollback, aborted")
+        return nil
+      end
+    else
+      return false -- no update occured
+    end
+  end
+
   -- waypoints
   turtle.waypoint = {}
 
@@ -192,6 +226,25 @@ if turtle and not turtle.act then
     end
   end
 
+  turtle.update = function (move)
+    if move == "f" then
+      turtle.x = turtle.x + coord_change[turtle.facing][1]
+      turtle.z = turtle.z + coord_change[turtle.facing][2]
+    elseif move == "b" then
+      turtle.x = turtle.x - coord_change[turtle.facing][1]
+      turtle.z = turtle.z - coord_change[turtle.facing][2]
+    elseif move == "u" then
+      turtle.y = turtle.y + 1
+    elseif move == "d" then
+      turtle.y = turtle.y - 1
+    elseif move == "l" then
+      turtle.facing = (turtle.facing - 1) % 4
+    elseif move == "r" then
+      turtle.facing = (turtle.facing + 1) % 4
+    end
+    turtle.saveLocation()
+  end
+
   turtle.face = function (facing)
     local new_facing = (facing - turtle.facing) % 4
     if new_facing == 1 then
@@ -207,64 +260,94 @@ if turtle and not turtle.act then
   -- replace movement functions
   turtle._turnLeft = turtle.turnLeft
   turtle.turnLeft = function ()
+    saveFile("move", "l")
     if turtle._turnLeft() then
       turtle.facing = (turtle.facing - 1) % 4
+      turtle.saveLocation()
+      deleteFile("move")
       return true
     else
+      deleteFile("move")
       return false
     end
   end
 
   turtle._turnRight = turtle.turnRight
   turtle.turnRight = function ()
+    saveFile("move", "r")
     if turtle._turnRight() then
       turtle.facing = (turtle.facing + 1) % 4
+      turtle.saveLocation()
+      deleteFile("move")
       return true
     else
+      deleteFile("move")
       return false
     end
   end
 
   turtle._forward = turtle.forward
   turtle.forward = function ()
+    saveFile("move", "f")
     if turtle._forward() then
       turtle.x = turtle.x + coord_change[turtle.facing][1]
       turtle.z = turtle.z + coord_change[turtle.facing][2]
+      turtle.saveLocation()
+      deleteFile("move")
       return true
     else
+      deleteFile("move")
       return false
     end
   end
 
   turtle._back = turtle.back
   turtle.back = function ()
+    saveFile("move", "b")
     if turtle._back() then
       turtle.x = turtle.x - coord_change[turtle.facing][1]
       turtle.z = turtle.z - coord_change[turtle.facing][2]
+      turtle.saveLocation()
+      deleteFile("move")
       return true
     else
+      deleteFile("move")
       return false
     end
   end
 
   turtle._up = turtle.up
   turtle.up = function ()
+    saveFile("move", "u")
     if turtle._up() then
       turtle.y = turtle.y + 1
+      turtle.saveLocation()
+      deleteFile("move")
       return true
     else
+      deleteFile("move")
       return false
     end
   end
 
   turtle._down = turtle.down
   turtle.down = function ()
+    saveFile("move", "d")
     if turtle._down() then
       turtle.y = turtle.y - 1
+      turtle.saveLocation()
+      deleteFile("move")
       return true
     else
+      deleteFile("move")
       return false
     end
+  end
+
+  turtle._refuel = turtle.refuel
+  turtle.refuel = function (amount)
+    turtle._refuel(amount)
+    turtle.saveLocation()
   end
 
   turtle._select = turtle.select
@@ -1093,9 +1176,7 @@ function eval(ast, env, depth)
         if ast.param then
           if ptr.iter == 1 then
             local p = getValue(env, ast.param)
-            saveFile("action", "started")
             succ = func(p)
-            saveFile("action", "finished")
             ptr.iter = ptr.iter + 1
             saveFile("env", env)
           end
@@ -1103,21 +1184,19 @@ function eval(ast, env, depth)
           if ptr.iter == 1 then
             local p1 = getValue(env, ast.param1)
             local p2 = getValue(env, ast.param2)
-            saveFile("action", "started")
             succ = func(p1, p2)
-            saveFile("action", "finished")
             ptr.iter = ptr.iter + 1
             saveFile("env", env)
           end
         else
           while true do
             if ptr.iter <= ptr.count then
-              saveFile("action", "started")
-              succ = func()
-              saveFile("action", "finished")
-              if not succ then break end
-              ptr.iter = ptr.iter + 1
-              saveFile("env", env)
+              if not turtle.updateLocation() then
+                succ = func()
+                if not succ then break end
+                ptr.iter = ptr.iter + 1
+                saveFile("env", env)
+              end
             else
               break
             end
