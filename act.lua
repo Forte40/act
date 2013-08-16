@@ -86,11 +86,13 @@ if turtle and not turtle.act then
 
   turtle.loadLocation = function ()
     local loc = loadFile("location")
-    turtle.x = loc.x
-    turtle.y = loc.y
-    turtle.z = loc.z
-    turtle.facing = loc.facing
-    turtle.fuel = loc.fuel
+    if loc then
+      turtle.x = loc.x
+      turtle.y = loc.y
+      turtle.z = loc.z
+      turtle.facing = loc.facing
+      turtle.fuel = loc.fuel
+    end
   end
 
   turtle.updateLocation = function ()
@@ -230,13 +232,17 @@ if turtle and not turtle.act then
     if move == "f" then
       turtle.x = turtle.x + coord_change[turtle.facing][1]
       turtle.z = turtle.z + coord_change[turtle.facing][2]
+      turtle.fuel = turtle.fuel - 1
     elseif move == "b" then
       turtle.x = turtle.x - coord_change[turtle.facing][1]
       turtle.z = turtle.z - coord_change[turtle.facing][2]
+      turtle.fuel = turtle.fuel - 1
     elseif move == "u" then
       turtle.y = turtle.y + 1
+      turtle.fuel = turtle.fuel - 1
     elseif move == "d" then
       turtle.y = turtle.y - 1
+      turtle.fuel = turtle.fuel - 1
     elseif move == "l" then
       turtle.facing = (turtle.facing - 1) % 4
     elseif move == "r" then
@@ -262,8 +268,7 @@ if turtle and not turtle.act then
   turtle.turnLeft = function ()
     saveFile("move", "l")
     if turtle._turnLeft() then
-      turtle.facing = (turtle.facing - 1) % 4
-      turtle.saveLocation()
+      turtle.update("l")
       deleteFile("move")
       return true
     else
@@ -276,8 +281,7 @@ if turtle and not turtle.act then
   turtle.turnRight = function ()
     saveFile("move", "r")
     if turtle._turnRight() then
-      turtle.facing = (turtle.facing + 1) % 4
-      turtle.saveLocation()
+      turtle.update("r")
       deleteFile("move")
       return true
     else
@@ -290,9 +294,7 @@ if turtle and not turtle.act then
   turtle.forward = function ()
     saveFile("move", "f")
     if turtle._forward() then
-      turtle.x = turtle.x + coord_change[turtle.facing][1]
-      turtle.z = turtle.z + coord_change[turtle.facing][2]
-      turtle.saveLocation()
+      turtle.update("f")
       deleteFile("move")
       return true
     else
@@ -305,9 +307,7 @@ if turtle and not turtle.act then
   turtle.back = function ()
     saveFile("move", "b")
     if turtle._back() then
-      turtle.x = turtle.x - coord_change[turtle.facing][1]
-      turtle.z = turtle.z - coord_change[turtle.facing][2]
-      turtle.saveLocation()
+      turtle.update("b")
       deleteFile("move")
       return true
     else
@@ -320,8 +320,7 @@ if turtle and not turtle.act then
   turtle.up = function ()
     saveFile("move", "u")
     if turtle._up() then
-      turtle.y = turtle.y + 1
-      turtle.saveLocation()
+      turtle.update("u")
       deleteFile("move")
       return true
     else
@@ -334,8 +333,7 @@ if turtle and not turtle.act then
   turtle.down = function ()
     saveFile("move", "d")
     if turtle._down() then
-      turtle.y = turtle.y - 1
-      turtle.saveLocation()
+      turtle.update("d")
       deleteFile("move")
       return true
     else
@@ -347,6 +345,7 @@ if turtle and not turtle.act then
   turtle._refuel = turtle.refuel
   turtle.refuel = function (amount)
     turtle._refuel(amount)
+    turtle.fuel = turtle.getFuelLevel()
     turtle.saveLocation()
   end
 
