@@ -335,7 +335,7 @@ function loadFile(fileName)
     local f = fs.open(".act."..fileName, "r")
     local s = f.readAll()
     f.close()
-    return textutils.unserialize(s)
+    return unserialize(s)
   end
 end
 
