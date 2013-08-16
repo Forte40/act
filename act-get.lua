@@ -1,6 +1,11 @@
 --http://pastebin.com/5CuUMxqr
 
 local branch = "master"
+if fs.exists(".act.branch") then
+  local f = fs.open(".act.branch", "r")
+  branch = f.readAll()
+  f.close()
+end  
 
 local files = {
   {
