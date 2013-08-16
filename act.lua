@@ -306,22 +306,14 @@ function serialize(o, indent)
   return s
 end
 
-function fixNil(t)
-  for k, v in pairs(t)
-    if v == nil then
-      t[k] = math.huge
-    elseif type(v) == "table" then
-      fixNil(v)
-    end
+function unserialize( s )
+  local func, e = loadstring( "return "..s, "serialize" )
+  if not func then
+    return s
+  else
+    setfenv( func, {inf=math.huge} )
+    return func()
   end
-end
-
-function unserialize(s)
-  local v = textutils.unserialize(s)
-  if type(v) == "table" then
-    fixNil(v)
-  end
-  return v
 end
 
 function saveFile(fileName, table)
