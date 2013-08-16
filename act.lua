@@ -283,7 +283,7 @@ function serialize(o, indent)
   if type(o) == "number" then
     s = s .. indent .. tostring(o)
   elseif type(o) == "boolean" then
-    s = s .. indent .. o and "true" or "false"
+    s = s .. indent .. (o and "true" or "false")
   elseif type(o) == "string" then
     if o:find("\n") then
       s = s .. indent .. "[[\n" .. o:gsub("\"", "\\\"") .. "]]"
@@ -996,7 +996,8 @@ function interpret(ast, env, depth)
       while true do
         if not ptr.join then
           if ptr.step > #ast.actions then
-            if ast.join then
+            local ptrPrev = env.pointer[depth - 1]
+            if ast.join and ptrPrev.iter < ptrPrev.count then
               ptr.step = 1
               ptr.join = true
               saveFile("env", env)
