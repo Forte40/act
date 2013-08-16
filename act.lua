@@ -1000,8 +1000,9 @@ function interpret(ast, env, depth)
               ptr.step = 1
               ptr.join = true
               saveFile("env", env)
+            else
+              break
             end
-            break
           else
             rep, succ = interpret(ast.actions[ptr.step], env, depth + 1)
             env.pointer[depth + 1] = nil
