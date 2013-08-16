@@ -306,6 +306,24 @@ function serialize(o, indent)
   return s
 end
 
+function fixNil(t)
+  for k, v in pairs(t)
+    if v == nil then
+      t[k] = math.huge
+    elseif type(v) == "table" then
+      fixNil(v)
+    end
+  end
+end
+
+function unserialize(s)
+  local v = textutils.unserialize(s)
+  if type(v) == "table" then
+    fixNil(v)
+  end
+  return v
+end
+
 function saveFile(fileName, table)
   local f = io.open(".act." .. fileName, "w")
   f:write(serialize(table))
@@ -980,6 +998,7 @@ if ast then
   end
 end
 ]])
+  f.close()
   saveFile("ast", ast)
   eval(ast, env, 0)
   deleteFile("ast")
