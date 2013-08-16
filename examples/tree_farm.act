@@ -8,7 +8,7 @@ c t2,1 t3,1 t5,1 t7,1 t9,1 t10,1 t11,1 s16 c s1 e
 
 -- vacuum routines
 
-((~Hd Sd Gd)* (?Hf Sf Gu) Gf)=%Vf% -- vacuum forward
+((~Hd Sd Gd)* (?Hf Sf Gu)* Sf Gf)=%Vf% -- vacuum forward
 
 (
 	(%Vf%3 r)2             -- position at corner
