@@ -1192,10 +1192,10 @@ function eval(ast, env, depth)
             if ptr.iter <= ptr.count then
               if not turtle.updateLocation() then
                 succ = func()
-                if not succ then break end
-                ptr.iter = ptr.iter + 1
-                saveFile("env", env)
               end
+              if not succ then break end
+              ptr.iter = ptr.iter + 1
+              saveFile("env", env)
             else
               break
             end
