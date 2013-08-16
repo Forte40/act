@@ -992,7 +992,7 @@ end
 ]])
   f.close()
   saveFile("ast", ast)
-  eval(ast, env, 0)
+  eval(ast, env, 1)
   deleteFile("ast")
   deleteFile("env")
   fs.delete("startup")
@@ -1093,7 +1093,9 @@ function eval(ast, env, depth)
         if ast.param then
           if ptr.iter == 1 then
             local p = getValue(env, ast.param)
+            saveFile("action", "started")
             succ = func(p)
+            saveFile("action", "finished")
             ptr.iter = ptr.iter + 1
             saveFile("env", env)
           end
@@ -1101,14 +1103,18 @@ function eval(ast, env, depth)
           if ptr.iter == 1 then
             local p1 = getValue(env, ast.param1)
             local p2 = getValue(env, ast.param2)
+            saveFile("action", "started")
             succ = func(p1, p2)
+            saveFile("action", "finished")
             ptr.iter = ptr.iter + 1
             saveFile("env", env)
           end
         else
           while true do
             if ptr.iter <= ptr.count then
+              saveFile("action", "started")
               succ = func()
+              saveFile("action", "finished")
               if not succ then break end
               ptr.iter = ptr.iter + 1
               saveFile("env", env)
