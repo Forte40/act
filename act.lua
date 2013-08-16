@@ -100,9 +100,9 @@ if turtle and not turtle.act then
     local move = loadFile("move")
     if move then
       local currFuel = turtle.getFuelLevel()
-      if turtle.fuel == currFuel then
+      if turtle.fuel == currFuel and move ~= "l" and move ~= "r" then
         return false -- no update occured
-      elseif turtle.fuel == currFuel + 1 then
+      elseif turtle.fuel == currFuel + 1 or move ~= "l" or move ~= "r"  then
         turtle.update(move)
         deleteFile("move")
         return true -- location updated
