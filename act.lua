@@ -148,7 +148,7 @@ if turtle and not turtle.act then
     for c in priority:gmatch(".") do
       if c == "y" then
         -- move up or down
-        local dy = waypoint.y - turtle.y
+        local dy = y - turtle.y
         if dy > 0 then
           for i = 1, dy do
             goUp()
@@ -160,7 +160,7 @@ if turtle and not turtle.act then
         end
       elseif c == "x" then
         -- move east or west
-        local dx = waypoint.x - turtle.x
+        local dx = x - turtle.x
         if dx > 0 then -- east
           turtle.face(3)
           for i = 1, dx do
@@ -174,7 +174,7 @@ if turtle and not turtle.act then
         end
       elseif c == "z" then
         -- move north or south
-        local dz = waypoint.z - turtle.z
+        local dz = z - turtle.z
         if dz > 0 then -- south
           turtle.face(0)
           for i = 1, dz do
@@ -191,7 +191,7 @@ if turtle and not turtle.act then
 
     -- face proper direction
     if facing then
-      turtle.face(waypoint.facing)
+      turtle.face(facing)
     end
 
     return true
@@ -1002,6 +1002,7 @@ local tExtensions = {
         while true do
           local currCount = turtle.getItemCount(slot)
           if currCount < count then
+            turtle.select(slot)
             if currCount == 0 then
               io.write("place "..tostring(count).." "..desc.." in slot "..tostring(slot))
             else
