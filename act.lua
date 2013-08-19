@@ -1,3 +1,65 @@
+-- serialize functions ---------------------------------------------------------
+
+function serialize(o, indent)
+  local s = ""
+  indent = indent or ""
+  if type(o) == "number" then
+    s = s .. indent .. tostring(o)
+  elseif type(o) == "boolean" then
+    s = s .. indent .. (o and "true" or "false")
+  elseif type(o) == "string" then
+    if o:find("\n") then
+      s = s .. indent .. "[[\n" .. o:gsub("\"", "\\\"") .. "]]"
+    else
+      s = s .. indent .. string.format("%q", o)
+    end
+  elseif type(o) == "table" then
+    s = s .. "{\n"
+    for k,v in pairs(o) do
+      if type(v) == "table" then
+        s = s .. indent .. "  [" .. serialize(k) .. "] = " .. serialize(v, indent .. "  ") .. ",\n"
+      else
+        s = s .. indent .. "  [" .. serialize(k) .. "] = " .. serialize(v) .. ",\n"
+      end
+    end
+    s = s .. indent .. "}"
+  else
+    error("cannot serialize a " .. type(o))
+  end
+  return s
+end
+
+function unserialize( s )
+  local func, e = loadstring( "return "..s, "serialize" )
+  if not func then
+    return s
+  else
+    setfenv( func, {inf=math.huge} )
+    return func()
+  end
+end
+
+function saveFile(fileName, table)
+  local f = io.open(".act." .. fileName, "w")
+  f:write(serialize(table))
+  f:close()
+end
+
+function loadFile(fileName)
+  if fs.exists(".act."..fileName) then
+    local f = fs.open(".act."..fileName, "r")
+    local s = f.readAll()
+    f.close()
+    return unserialize(s)
+  end
+end
+
+function deleteFile(fileName)
+  if fs.exists(".act."..fileName) then
+    fs.delete(".act."..fileName)
+  end
+end
+
 -- movement tracking -----------------------------------------------------------
 
 -- check if API already loaded
@@ -358,68 +420,6 @@ if turtle and not turtle.act then
     if turtle._select(slot) then
       turtle.selected = slot
     end
-  end
-end
-
--- serialize functions ---------------------------------------------------------
-
-function serialize(o, indent)
-  local s = ""
-  indent = indent or ""
-  if type(o) == "number" then
-    s = s .. indent .. tostring(o)
-  elseif type(o) == "boolean" then
-    s = s .. indent .. (o and "true" or "false")
-  elseif type(o) == "string" then
-    if o:find("\n") then
-      s = s .. indent .. "[[\n" .. o:gsub("\"", "\\\"") .. "]]"
-    else
-      s = s .. indent .. string.format("%q", o)
-    end
-  elseif type(o) == "table" then
-    s = s .. "{\n"
-    for k,v in pairs(o) do
-      if type(v) == "table" then
-        s = s .. indent .. "  [" .. serialize(k) .. "] = " .. serialize(v, indent .. "  ") .. ",\n"
-      else
-        s = s .. indent .. "  [" .. serialize(k) .. "] = " .. serialize(v) .. ",\n"
-      end
-    end
-    s = s .. indent .. "}"
-  else
-    error("cannot serialize a " .. type(o))
-  end
-  return s
-end
-
-function unserialize( s )
-  local func, e = loadstring( "return "..s, "serialize" )
-  if not func then
-    return s
-  else
-    setfenv( func, {inf=math.huge} )
-    return func()
-  end
-end
-
-function saveFile(fileName, table)
-  local f = io.open(".act." .. fileName, "w")
-  f:write(serialize(table))
-  f:close()
-end
-
-function loadFile(fileName)
-  if fs.exists(".act."..fileName) then
-    local f = fs.open(".act."..fileName, "r")
-    local s = f.readAll()
-    f.close()
-    return unserialize(s)
-  end
-end
-
-function deleteFile(fileName)
-  if fs.exists(".act."..fileName) then
-    fs.delete(".act."..fileName)
   end
 end
 
