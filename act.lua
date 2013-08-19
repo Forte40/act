@@ -1053,7 +1053,12 @@ end
 function getValue(env, var)
   if type(var) == "table" then
     if var.vartype == "num" and var.name == "#" then
-      return env.pointer[env.depth-1].iter
+      for i = env.depth - 1, 1, -1 do
+        if env.pointer[i].iter then
+          return env.pointer[i].iter
+        end
+      end
+      return 1
     else
       return env[var.vartype][var.name]
     end
@@ -1111,7 +1116,7 @@ end
   fs.delete("startup")
   if fs.exists(".act.startup") then
     fs.move(".act.startup", "startup")
-    shell.run("startup")
+    --shell.run("startup")
   end
 end
 
