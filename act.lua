@@ -1133,6 +1133,7 @@ function eval(ast, env, depth)
             break
           else
             rep, succ = eval(ast.join[ptr.step], env, depth + 1)
+            env.pointer[depth + 1] = nil
           end
         end
         if not succ then
@@ -1155,8 +1156,9 @@ function eval(ast, env, depth)
   elseif ast.action then
     if ast.variable and ast.variable.vartype == "ext" then
       registerExtension(ast.variable.name, function ()
-        rep, succ = eval({action=ast.action}, env, env.depth + 1)
-        env.pointer[env.depth + 1] = nil
+        local action = {action=ast.action, count=ast.count, predicate=ast.predicate}
+        local rep, succ = eval(action, env, env.depth)
+        env.pointer[env.depth] = nil
         return rep, succ
       end)
       return 1, true
