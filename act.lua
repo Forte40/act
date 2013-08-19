@@ -657,8 +657,8 @@ lang.locationaction = C(
   S("[Gw]", "<", lang.token, M(S(",", lang.token, P{2})), ">", P({waypointtype=1, waypoint=3, priority=4}))
 )
 lang.param2action = S("t", lang.int, ",", lang.int, P{action=1, param1=2, param2=4}) 
-lang.paramaction = S(C("[egostz]", "[E][fud]", "Ct"), C(lang.number, lang.string, lang.boolvar), P{action=1, param=2})
-lang.simpleaction = C("[cefblrudq]", "[ABCDEGHMPS][fud]", "Gb", "I[csf]")
+lang.paramaction = S(C("[egostz]", "[E][fud]", "Ct", "I[cs]"), C(lang.number, lang.string, lang.boolvar), P{action=1, param=2})
+lang.simpleaction = C("[cefblrudq]", "[ABCDEGHMPS][fud]", "Gb", "If")
 lang.extension = S("%%", lang.token, Z(S(",", C(lang.token, lang.string, lang.number), P{2})), "%%", P{extension=2, params=3})
 lang.action = {}
 lang.joiner = S("/", O(lang.action))
@@ -916,6 +916,7 @@ local tHandlers = {
   ["e"] = turtle.refuel,
   ["o"] = io.write,
   ["c"] = turtle.craft,
+  ["q"] = error,
   -- dig
   ["Df"] = turtle.dig,
   ["Du"] = turtle.digUp,
