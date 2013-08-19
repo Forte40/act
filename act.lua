@@ -130,13 +130,14 @@ if turtle and not turtle.act then
 
   turtle.go = function (x, y, z, facing, priority)
     if type(x) == "string" then
+      priority = y
       -- go to waypoint
       if turtle.waypoint[x] then
         x, y, z, facing = unpack(turtle.waypoint[x])
       end
     end
     -- go to coordinates
-    if not type(priority) == "string" or
+    if type(priority) ~= "string" or
         not priority:find("x") or
         not priority:find("y") or
         not priority:find("z") or
