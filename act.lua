@@ -744,6 +744,9 @@ function compile(ast)
     if ast.param1 then
       src = src .. varString(ast.param1) .. "," .. varString(ast.param2)
     end
+    if ast.comparison then
+      src = src .. ast.comparison.operator .. varString(ast.comparison.value)
+    end
     if ast.variable then
       src = src .. "=" .. varString(ast.variable)
     end
@@ -1243,7 +1246,7 @@ function eval(ast, env, depth)
         succ = true
       end
       if ast.comparison then
-        local value = getValue(ast.comparison.value)
+        local value = getValue(env, ast.comparison.value)
         if ast.comparison.operator == "<" then
           succ = rep < value
         elseif ast.comparison.operator == ">" then
