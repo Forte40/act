@@ -1213,6 +1213,9 @@ function eval(ast, env, depth)
             else
               break
             end
+            if not succ then
+              rep = ptr.iter - 1
+            end
           end
         end
       else
@@ -1229,6 +1232,9 @@ function eval(ast, env, depth)
           else
             break
           end
+          if not succ then
+            rep = ptr.iter - 1
+          end
         end
       end
       -- fix for function returning number rather than success
@@ -1236,30 +1242,30 @@ function eval(ast, env, depth)
         rep = succ
         succ = true
       end
+      if ast.comparison then
+        local value = getValue(ast.comparison.value)
+        if ast.comparison.operator == "<" then
+          succ = rep < value
+        elseif ast.comparison.operator == ">" then
+          succ = rep > value
+        elseif ast.comparison.operator == "<=" then
+          succ = rep <= value
+        elseif ast.comparison.operator == ">=" then
+          succ = rep >= value
+        elseif ast.comparison.operator == "==" then
+          succ = rep == value
+        elseif ast.comparison.operator == "~=" then
+          succ = rep ~= value
+        end
+      end
       if ast.variable then
         if ast.variable.vartype == "num" then
-          env["num"][ast.variable.name] = ptr.iter - 1
+          env["num"][ast.variable.name] = rep
         elseif ast.variable.vartype == "bool" then
           env["bool"][ast.variable.name] = succ
         end
       end
       if ast.predicate then
-        if ast.comparison then
-          local value = getValue(ast.comparison.value)
-          if ast.comparison.operator == "<" then
-            succ = rep < value
-          elseif ast.comparison.operator == ">" then
-            succ = rep > value
-          elseif ast.comparison.operator == "<=" then
-            succ = rep <= value
-          elseif ast.comparison.operator == ">=" then
-            succ = rep >= value
-          elseif ast.comparison.operator == "==" then
-            succ = rep == value
-          elseif ast.comparison.operator == "~=" then
-            succ = rep ~= value
-          end
-        end
         if ast.predicate == "?" then
           return ptr.iter - 1, succ
         elseif ast.predicate == "~" then
