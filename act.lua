@@ -651,6 +651,7 @@ lang.worker = S(lang.token, ":", P{1})
 lang.number = C("%*", lang.float, lang.int, lang.numvar)
 lang.variable = S("=", C(lang.numvar, lang.boolvar, lang.extvar), P{2})
 lang.predicate = L("[%?~]")
+lang.comparison = S(C("<", ">", "<=", ">=", "==", "~="), lang.number, P{operator=1, value=2})
 lang.locationaction = C(
   S("G<", lang.int, ",", lang.int, ",", lang.int, M(S(",", lang.int, P{2})), M(S(",", lang.token, P{2})), ">", P{waypointtype="G", x=2, y=4, z=6, facing=7, priority=8}),
   S("[Gw]", "<", lang.token, M(S(",", lang.token, P{2})), ">", P({waypointtype=1, waypoint=3, priority=4}))
@@ -685,12 +686,13 @@ I(lang.action, S(M(lang.predicate), C(
                    lang.simpleaction,
                    lang.seqplan,
                    lang.parplan
-                 ), M(lang.number), M(lang.variable),
+                 ), M(lang.number), M(lang.comparison), M(lang.variable),
   function (ast)
     local rast = {action=ast[2]}
     if ast[1] then rast.predicate = ast[1] end
     if ast[3] then rast.count = ast[3] end
-    if ast[4] then rast.variable = ast[4] end
+    if ast[4] then rast.comparison = ast[4] end
+    if ast[5] then rast.variable = ast[5] end
     return rast
   end
 ))
@@ -1060,6 +1062,10 @@ local function sendViaModem(ast, env)
 end
 
 function interpret(ast, env)
+  if fs.exists("startup") then
+    -- wrap startup
+    fs.move("startup", ".act.startup")
+  end
   local f = fs.open("startup", "w")
   f.write([[
 os.loadAPI("apis/act")
@@ -1078,6 +1084,10 @@ end
   deleteFile("ast")
   deleteFile("env")
   fs.delete("startup")
+  if fs.exists(".act.startup") then
+    fs.move(".act.startup", "startup")
+    shell.run("startup")
+  end
 end
 
 function eval(ast, env, depth)
@@ -1221,6 +1231,11 @@ function eval(ast, env, depth)
           end
         end
       end
+      -- fix for function returning number rather than success
+      if tonumber(succ) ~= nil then
+        rep = succ
+        succ = true
+      end
       if ast.variable then
         if ast.variable.vartype == "num" then
           env["num"][ast.variable.name] = ptr.iter - 1
@@ -1229,6 +1244,22 @@ function eval(ast, env, depth)
         end
       end
       if ast.predicate then
+        if ast.comparison then
+          local value = getValue(ast.comparison.value)
+          if ast.comparison.operator == "<" then
+            succ = rep < value
+          elseif ast.comparison.operator == ">" then
+            succ = rep > value
+          elseif ast.comparison.operator == "<=" then
+            succ = rep <= value
+          elseif ast.comparison.operator == ">=" then
+            succ = rep >= value
+          elseif ast.comparison.operator == "==" then
+            succ = rep == value
+          elseif ast.comparison.operator == "~=" then
+            succ = rep ~= value
+          end
+        end
         if ast.predicate == "?" then
           return ptr.iter - 1, succ
         elseif ast.predicate == "~" then
