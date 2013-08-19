@@ -94,6 +94,7 @@ if turtle and not turtle.act then
       turtle.fuel = loc.fuel
     end
   end
+  turtle.loadLocation()
 
   turtle.updateLocation = function ()
     if not turtle.fuel then turtle.loadLocation() end
@@ -132,7 +133,7 @@ if turtle and not turtle.act then
     local waypoint = {x=x, y=y, z=z, facing=facing}
     if type(x) == "string" then
       if turtle.waypoint[x] then
-        local waypoint = turtle.waypoint[x]
+        waypoint = turtle.waypoint[x]
         priority = y
       else
         return false
