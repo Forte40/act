@@ -644,7 +644,7 @@ lang.string = S('"',O(C('\\"', '[^"]'), P()),'"', function (ast)
   return ast[2]:gsub("\\n", "\n"):gsub('\\"', '"'):gsub("\\\\", "\\")
 end)
 lang.token = L("[%u%l%d_]+")
-lang.numvar = S("#", "[%u%l]", P{vartype="num", name=2})
+lang.numvar = S("#", "[%u%l#]", P{vartype="num", name=2})
 lang.boolvar = S("%$", "[%u%l]", P{vartype="bool", name=2})
 lang.extvar = S("%%", lang.token, "%%", P{vartype="ext", name=2})
 lang.worker = S(lang.token, ":", P{1})
@@ -686,7 +686,7 @@ I(lang.action, S(M(lang.predicate), C(
                    lang.simpleaction,
                    lang.seqplan,
                    lang.parplan
-                 ), M(lang.number), M(lang.comparison), M(lang.variable),
+                 ), M(lang.number), M(S(",", lang.number), P{2}), M(lang.comparison), M(lang.variable),
   function (ast)
     local rast
     if ast[2].action then
@@ -695,9 +695,15 @@ I(lang.action, S(M(lang.predicate), C(
       rast = {action=ast[2]}
     end
     if ast[1] then rast.predicate = ast[1] end
-    if ast[3] then rast.count = ast[3] end
-    if ast[4] then rast.comparison = ast[4] end
-    if ast[5] then rast.variable = ast[5] end
+    if ast[4] then
+      rast.start = ast[3]
+      rast.count = ast[4]
+    elseif ast[3] then
+      rast.start = 1
+      rast.count = ast[3]
+    end
+    if ast[5] then rast.comparison = ast[5] end
+    if ast[6] then rast.variable = ast[6] end
     return rast
   end
 ))
@@ -741,7 +747,11 @@ function compile(ast)
       src = ast.predicate .. src
     end
     if ast.count then
-      src = src .. varString(ast.count)
+      if ast.start ~= 1 then
+        src = src .. varString(ast.start) .. "," .. varString(ast.count)
+      else
+        src = src .. varString(ast.count)
+      end
     end
     if ast.param then
       src = src .. varString(ast.param)
@@ -1040,7 +1050,11 @@ end
 
 function getValue(env, var)
   if type(var) == "table" then
-    return env[var.vartype][var.name]
+    if var.vartype == "num" and var.name == "#" then
+      return env.pointer[env.depth-1].iter
+    else
+      return env[var.vartype][var.name]
+    end
   elseif var == "*" then
     return math.huge
   else
@@ -1187,7 +1201,7 @@ function eval(ast, env, depth)
       local rep = 0
       local ptr = env.pointer[depth]
       if not ptr then
-        ptr = {count=getValue(env, ast.count) or 1, iter=1}
+        ptr = {count=getValue(env, ast.count) or 1, iter=getValue(env, ast.start) or 1}
         env.pointer[depth] = ptr
         saveFile("env", env)
       end
