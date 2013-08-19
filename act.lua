@@ -929,7 +929,9 @@ local tHandlers = {
   ["s"] = turtle.select,
   ["t"] = turtle.transferTo,
   ["e"] = turtle.refuel,
-  ["o"] = io.write,
+  ["o"] = function (msg)
+    io.write(tostring(msg))
+  end,
   ["c"] = turtle.craft,
   ["q"] = error,
   -- dig
