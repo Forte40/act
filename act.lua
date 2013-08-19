@@ -688,7 +688,12 @@ I(lang.action, S(M(lang.predicate), C(
                    lang.parplan
                  ), M(lang.number), M(lang.comparison), M(lang.variable),
   function (ast)
-    local rast = {action=ast[2]}
+    local rast
+    if ast[2].action then
+      rast = ast[2]
+    else
+      rast = {action=ast[2]}
+    end
     if ast[1] then rast.predicate = ast[1] end
     if ast[3] then rast.count = ast[3] end
     if ast[4] then rast.comparison = ast[4] end
