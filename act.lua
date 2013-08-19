@@ -129,11 +129,13 @@ if turtle and not turtle.act then
   end
 
   turtle.go = function (x, y, z, facing, priority)
+    local waypoint = {x=x, y=y, z=z, facing=facing}
     if type(x) == "string" then
-      priority = y
-      -- go to waypoint
       if turtle.waypoint[x] then
-        x, y, z, facing = unpack(turtle.waypoint[x])
+        local waypoint = turtle.waypoint[x]
+        priority = y
+      else
+        return false
       end
     end
     -- go to coordinates
@@ -148,7 +150,7 @@ if turtle and not turtle.act then
     for c in priority:gmatch(".") do
       if c == "y" then
         -- move up or down
-        local dy = y - turtle.y
+        local dy = waypoint.y - turtle.y
         if dy > 0 then
           for i = 1, dy do
             goUp()
@@ -160,7 +162,7 @@ if turtle and not turtle.act then
         end
       elseif c == "x" then
         -- move east or west
-        local dx = x - turtle.x
+        local dx = waypoint.x - turtle.x
         if dx > 0 then -- east
           turtle.face(3)
           for i = 1, dx do
@@ -174,7 +176,7 @@ if turtle and not turtle.act then
         end
       elseif c == "z" then
         -- move north or south
-        local dz = z - turtle.z
+        local dz = waypoint.z - turtle.z
         if dz > 0 then -- south
           turtle.face(0)
           for i = 1, dz do
@@ -190,8 +192,8 @@ if turtle and not turtle.act then
     end
 
     -- face proper direction
-    if facing then
-      turtle.face(facing)
+    if waypoint.facing then
+      turtle.face(waypoint.facing)
     end
 
     return true
