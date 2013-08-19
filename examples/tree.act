@@ -1,0 +1,11 @@
+w<home>
+%request,1,chest,4%
+s5 Dd s4 Pd s5 Ed
+(
+%request ,2,saplings,1
+         ,4,bonemeal,2%
+s1 Pf s2 Pf3
+s3 Df (?If<64 e) Gf Mu
+(?Cu Mu (?If<64 e1))* G<home,yxz>
+Ed s4 Ed
+)*

@@ -1,0 +1,15 @@
+(?If<5 o"fuel up the turtle first" q)
+w<home>                                 -- set home
+%request,1,chest,4%                     -- request chest
+s5 Dd s4 Pd s5 Ed                       -- place chest
+(
+%request ,5,saplings,1                  -- request saplings and bonemeal
+         ,4,bonemeal,2%
+s1 Gf2 r Pf l Gb Pf r Pf l Gb Pf s2 Pf3 -- plant 4 saplings
+s3 Mf Df
+((?If<64 e1) ?Cu Mu Df)*
+Mu Df r Mf l Df
+((?If<64 e1) ?Cd Md Df)*
+l Gf r Gb
+(?Ic##>0 s## Ed)3,16
+)*
