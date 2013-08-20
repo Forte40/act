@@ -1285,9 +1285,9 @@ function eval(ast, env, depth)
           else
             break
           end
-          if not succ then
-            rep = ptr.iter - 1
-          end
+        end
+        if not succ then
+          rep = ptr.iter - 1
         end
       end
       -- fix for function returning number rather than success
