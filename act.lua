@@ -45,9 +45,10 @@ function saveFile(fileName, table)
   f:close()
 end
 
-function loadFile(fileName)
-  if fs.exists(".act."..fileName) then
-    local f = fs.open(".act."..fileName, "r")
+function loadFile(name, visible)
+  local filename = visible and name or ".act."..name
+  if fs.exists(filename) then
+    local f = fs.open(filename, "r")
     local s = f.readAll()
     f.close()
     return unserialize(s)
@@ -1048,14 +1049,30 @@ local tExtensions = {
     if cmd == "match" then
       return 0, peripheral.getType(arg[2]):find(arg[3]) ~= nil
     elseif cmd == "wrap" then
-      turtle.peripheral = peripheral.wrap(arg[2])
-      return 0, turtle.peripheral ~= nil
+      act.peripheral = peripheral.wrap(arg[2])
+      return 0, act.peripheral ~= nil
     else
       local args = {}
       for i = 3, arg.n do
         args[i-2] = arg[i]
       end
-      return 0, turtle.peripheral[arg[2]](unpack(args))
+      return 0, act.peripheral[arg[2]](unpack(args))
+    end
+  end,
+  ["config"] = function (...)
+    local filename = arg[1]..".config"
+    act.config = {}
+    if fs.exists(filename) then
+      act.config = loadFile(filename, true)
+    end
+    for i = 2, arg.n do
+      if arg[i] then
+        if act.config[arg[i]] == nil then
+          io.write("enter "..arg[i]..": ")
+          local data = io.read()
+          act.config[arg[i]] = tonumber(data)
+        end
+      end
     end
   end
 }

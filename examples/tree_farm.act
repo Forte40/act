@@ -39,7 +39,7 @@
 
 (
   r                  -- face sapling chest
-  (s##=#a ?Ic>0)4,16 -- get free spot
+  (s##=#a ?Ic>0)3,16 -- get free spot
   (
     s2 ?Is>0 ?Sf     -- while need stuff and can get stuff
     s#a (?Ic>0 rEfl) -- drop excess in other chest
