@@ -54,6 +54,7 @@
 )=%getsapling%
 
 (
+  Gf u
   %nexttree%
   (
     (
@@ -63,7 +64,7 @@
     / l %nexttree% l
   )2
 
-  Mf3 r Mf12 r Gb
+  Mf4 r Mf12 r d Gb
   %refuel%
   l (s## ?Ic>0 Ef)4,16 r -- drop off logs
   z100
