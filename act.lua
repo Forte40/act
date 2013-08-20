@@ -1267,9 +1267,7 @@ function eval(ast, env, depth)
               break
             end
           end
-          if not succ then
-            rep = ptr.iter - 1
-          end
+          rep = ptr.iter - 1
         end
       else
         while true do
@@ -1286,9 +1284,7 @@ function eval(ast, env, depth)
             break
           end
         end
-        if not succ then
-          rep = ptr.iter - 1
-        end
+        rep = ptr.iter - 1
       end
       -- fix for function returning number rather than success
       if tonumber(succ) ~= nil then
