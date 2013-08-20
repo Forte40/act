@@ -128,6 +128,7 @@ if turtle and not turtle.act then
   turtle.y = 0
   turtle.z = 0
   turtle.facing = 0
+  turtle.fuel = turtle.getFuelLevel()
   turtle.selected = 0
   -- how much to change x and z when moving in a direction                      
   local coord_change = {[0] = { 0,  1}, -- south / forward
@@ -185,7 +186,7 @@ if turtle and not turtle.act then
   turtle.loadWaypoints = function ()
     local waypoints = loadFile("waypoint")
     if waypoints then
-      turtle.waypoint = waypoint
+      turtle.waypoint = waypoints
     end
   end
   turtle.loadWaypoints()
@@ -210,6 +211,7 @@ if turtle and not turtle.act then
         return false
       end
     end
+    turtle.updateLocation()
     -- go to coordinates
     if type(priority) ~= "string" or
         not priority:find("x") or
@@ -1259,9 +1261,9 @@ function eval(ast, env, depth)
             else
               break
             end
-            if not succ then
-              rep = ptr.iter - 1
-            end
+          end
+          if not succ then
+            rep = ptr.iter - 1
           end
         end
       else
