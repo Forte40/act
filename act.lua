@@ -144,8 +144,9 @@ if turtle and not turtle.act then
     turtle.saveLocation()
   end
 
-  turtle.saveLocation = function ()
-    saveFile("location", {x=turtle.x, y=turtle.y, z=turtle.z, facing=turtle.facing, fuel=turtle.getFuelLevel()})
+  turtle.saveLocation = function (move)
+    saveFile("location", {x=turtle.x, y=turtle.y, z=turtle.z, facing=turtle.facing, fuel=turtle.getFuelLevel(), move=move})
+    turtle.move = nil
   end
 
   turtle.loadLocation = function ()
@@ -156,21 +157,18 @@ if turtle and not turtle.act then
       turtle.z = loc.z
       turtle.facing = loc.facing
       turtle.fuel = loc.fuel
+      turtle.move = loc.move
     end
   end
   turtle.loadLocation()
 
   turtle.updateLocation = function ()
-    if not turtle.fuel then turtle.loadLocation() end
-    local move = loadFile("move")
-    if move then
+    if turtle.move then
       local currFuel = turtle.getFuelLevel()
-      if turtle.fuel == currFuel and move ~= "l" and move ~= "r" then
+      if turtle.fuel == currFuel and turtle.move ~= "l" and turtle.move ~= "r" then
         return false -- no update occured
-      elseif turtle.fuel == currFuel + 1 or move ~= "l" or move ~= "r"  then
-        print("updating location")
-        turtle.update(move)
-        deleteFile("move")
+      elseif turtle.fuel == currFuel + 1 or turtle.move ~= "l" or turtle.move ~= "r"  then
+        turtle.update(turtle.move)
         return true -- location updated
       else
         -- server rollback?
@@ -308,28 +306,22 @@ if turtle and not turtle.act then
 
   turtle.update = function (move)
     if move == "f" then
-      print("adjusting forward")
       turtle.x = turtle.x + coord_change[turtle.facing][1]
       turtle.z = turtle.z + coord_change[turtle.facing][2]
       turtle.fuel = turtle.fuel - 1
     elseif move == "b" then
-      print("adjusting back")
       turtle.x = turtle.x - coord_change[turtle.facing][1]
       turtle.z = turtle.z - coord_change[turtle.facing][2]
       turtle.fuel = turtle.fuel - 1
     elseif move == "u" then
-      print("adjusting up")
       turtle.y = turtle.y + 1
       turtle.fuel = turtle.fuel - 1
     elseif move == "d" then
-      print("adjusting down")
       turtle.y = turtle.y - 1
       turtle.fuel = turtle.fuel - 1
     elseif move == "l" then
-      print("adjusting left")
       turtle.facing = (turtle.facing - 1) % 4
     elseif move == "r" then
-      print("adjusting right")
       turtle.facing = (turtle.facing + 1) % 4
     end
     turtle.saveLocation()
@@ -350,78 +342,72 @@ if turtle and not turtle.act then
   -- replace movement functions
   turtle._turnLeft = turtle.turnLeft
   turtle.turnLeft = function ()
-    saveFile("move", "l")
+    turtle.saveLocation("l")
     if turtle._turnLeft() then
       turtle.update("l")
-      deleteFile("move")
       return true
     else
-      deleteFile("move")
+      turtle.saveLocation()
       return false
     end
   end
 
   turtle._turnRight = turtle.turnRight
   turtle.turnRight = function ()
-    saveFile("move", "r")
+    turtle.saveLocation("r")
     if turtle._turnRight() then
       turtle.update("r")
-      deleteFile("move")
       return true
     else
-      deleteFile("move")
+      turtle.saveLocation()
       return false
     end
   end
 
   turtle._forward = turtle.forward
   turtle.forward = function ()
-    saveFile("move", "f")
+    turtle.saveLocation("f")
     if turtle._forward() then
       turtle.update("f")
-      deleteFile("move")
       return true
     else
-      deleteFile("move")
+      turtle.saveLocation()
       return false
     end
   end
 
   turtle._back = turtle.back
   turtle.back = function ()
-    saveFile("move", "b")
+    turtle.saveLocation("b")
     if turtle._back() then
       turtle.update("b")
-      deleteFile("move")
       return true
     else
-      deleteFile("move")
+      turtle.saveLocation()
       return false
     end
   end
 
   turtle._up = turtle.up
   turtle.up = function ()
-    saveFile("move", "u")
+    turtle.saveLocation("u")
     if turtle._up() then
       turtle.update("u")
-      deleteFile("move")
       return true
     else
-      deleteFile("move")
+      turtle.saveLocation()
       return false
     end
   end
 
   turtle._down = turtle.down
   turtle.down = function ()
-    saveFile("move", "d")
+    turtle.saveLocation("d")
     if turtle._down() then
       turtle.update("d")
-      deleteFile("move")
       return true
     else
-      deleteFile("move")
+      turtle.saveLocation()
       return false
     end
   end
