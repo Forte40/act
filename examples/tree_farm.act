@@ -4,7 +4,7 @@
 
 (
   s1 ?Bd Md   -- check for sapling
-  (~Cd Dd Bd) -- check for dirt
+  (~Cd (s## ?Ic>0)4,16 Dd Bd (?Ic>0 t1)) -- check for dirt
   Mu s2 Bd    -- plant sapling
 )=%plant%
 
@@ -33,7 +33,7 @@
   (s## ?Ic>0)4,16=#a -- select free
   Mf
   (?Ic>0
-    (?Ic>0 t##)#a=#b -- consolidate
+    (?Ic>0 t##)4,#a=#b -- consolidate
     (?Ic==0 s#b)
     %chop%
   )
@@ -66,6 +66,6 @@
 
   Mf4 r Mf12 r d Gb
   %refuel%
-  l (s## ?Ic>0 Ef)4,16 r -- drop off logs
+  l (s## (?Ic>0 Ef))4,16 r -- drop off logs
   z100
 )*
