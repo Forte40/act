@@ -111,15 +111,33 @@ elseif cmd == "macro" then
     print("enter macro name (must be unique)")
   end
 elseif macro[cmd] then
+  local env = {num={}}
+  for i = 2, #tArgs do
+    local num = tonumber(tArgs[i])
+    if num ~= nil then
+      env.num[string.char(63+i)] = num
+    else
+      break
+    end
+  end
   local plan = macro[cmd]
   print(plan)
-  act.act(plan)
+  act.act(plan, env)
 elseif fs.exists(cmd..".act") then
   local f = fs.open(cmd..".act", "r")
   local plan = f.readAll()
   f.close()
   print("using script '"..cmd..".act'")
-  act.act(plan)
+  local env = {num={}}
+  for i = 2, #tArgs do
+    local num = tonumber(tArgs[i])
+    if num ~= nil then
+      env.num[string.char(63+i)] = num
+    else
+      break
+    end
+  end
+  act.act(plan, env)
 else
   local plan
   if cmd:sub(1,2) == "[[" then

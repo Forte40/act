@@ -184,7 +184,7 @@ Write scripts in seconds, instead of hours! Turtle mini-language for making scri
 
 	    The request extension is built and instructs a turtle to check its inventory for the correct levels.  3 parameters must be passed where the first and third should be numbers.  You can repeat this several times for checking for multiple resources.  The turtle will pause if more is needed and wait.
 
-	    %request,slot,description,amount%
+	    %request,amount,description,slot%
 
 	    Extensions can also be used as sub routines in act scripts.  Use the variable syntax to save a grouping of actions to an extension
 

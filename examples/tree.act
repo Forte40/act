@@ -1,11 +1,41 @@
+-- set home
 w<home>
-%request,4,chest,1%
-s5 Dd s4 Pd s5 Ed
+-- print reminder
+o"place a chest the under turtle"
+
+-- tree loop start
 (
-%request ,1,saplings,2
-         ,2,bonemeal,4%
-s1 Pf s2 Pf3
-s3 Df (?If<64 e) Gf Mu
-(?Cu Mu (?If<64 e1))* G<home,yxz>
-Ed s4 Ed
+  -- request saplings and bonemeal
+  %request ,2,saplings,1
+           ,10,bonemeal,2%
+
+  -- plant sapling
+  s1 Pf
+  -- bonemeal loop start
+  (
+    -- request bonemeal
+    %request,10,bonemeal,2%
+    -- check if tree grew
+    -- compare with sapling
+    (s2 Bf s1 ?Cf z0.5)*
+    -- look for log above sapling
+    Mu ~Hf Md z2
+  )*
+  -- bonemeal loop end
+
+  -- chop into tree
+  s3 Mf Dd
+  -- chop up while block above matches
+  (?Cu Mu 
+    -- refuel if needed
+    (?If<64 e1)
+  )*
+
+  -- go back home, y coord first (down)
+  G<home,yxz>
+
+  -- loop through slots 3-16
+  -- drop if item count is > 0
+  (?Ic##>0 s## Ed)3,16
 )*
+-- tree loop end

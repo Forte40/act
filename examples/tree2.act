@@ -1,4 +1,3 @@
-(?If<5 o"fuel up the turtle first" q)
 w<home>                                 -- set home
 %request,1,chest,4%                     -- request chest
 s5 Dd s4 Pd s5 Ed                       -- place chest
@@ -13,3 +12,54 @@ Mu Df r Mf l Df
 l Gf r Gb
 (?Ic##>0 s## Ed)3,16
 )*
+
+-- check for fuel >= 5 or quit
+(~If>=60 o"fuel up the turtle first" q)
+
+-- set home
+w<home>
+-- print reminder
+o"place a chest the under turtle"
+
+-- tree loop start
+(
+  -- request saplings and bonemeal
+  %request ,5,saplings,1
+           ,10,bonemeal,2%
+
+  -- plant 4 sapling 2x2
+  s1 Gf2 r Bf l Gb Bf r Bf l Gb Bf
+  -- bonemeal loop start
+  (
+    -- request bonemeal
+    %request,10,bonemeal,2%
+    -- check if tree grew
+    -- compare with sapling
+    (s2 Bf s1 ?Cf z0.5)*
+    -- look for log above sapling
+    Mu ~Hf Md z2
+  )*
+  -- bonemeal loop end
+
+  -- chop tree up left side
+  Md
+  s3 Mf Df
+  -- refuel if needed
+  ((?If<64 e1)
+    ?Cu Mu Df
+  )*
+  -- chop tree down right side
+  Mu Df r Mf l Df
+  -- refuel if needed
+  ((?If<64 e1)
+    ?Cd Md Df
+  )*
+
+  -- go back home, y coord first (down)
+  G<home,yxz>
+
+  -- loop through slots 3-16
+  -- drop if item count is > 0
+  (?Ic##>0 s## Ed)3,16
+)*
+-- tree loop end

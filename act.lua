@@ -996,7 +996,7 @@ local tExtensions = {
   end,
   ["request"] = function (...)
     for r = 1, arg.n, 3 do
-      local slot, desc, count = arg[r], arg[r+1], arg[r+2]
+      local count, desc, slot = arg[r], arg[r+1], arg[r+2]
       if slot and desc and count then
         slot = tonumber(slot)
         if not slot then break end
