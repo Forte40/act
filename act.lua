@@ -197,6 +197,7 @@ if turtle and not turtle.act then
     else
       turtle.waypoint[name] = {x=turtle.x, y=turtle.y, z=turtle.z}
     end
+    saveFile("waypoint", turtle.waypoint)
   end
 
   turtle.go = function (x, y, z, facing, priority)
