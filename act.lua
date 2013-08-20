@@ -425,6 +425,18 @@ if turtle and not turtle.act then
       turtle.selected = slot
     end
   end
+
+  turtle._getItemSpace = turtle.getItemSpace
+  turtle.getItemSpace = function (slot)
+    slot = slot or turtle.selected
+    return turtle._getItemSpace(slot)
+  end
+
+  turtle._getItemCount = turtle.getItemCount
+  turtle.getItemCount = function (slot)
+    slot = slot or turtle.selected
+    return turtle._getItemCount(slot)
+  end
 end
 
 -- convenience functions for building a language -------------------------------
@@ -666,7 +678,7 @@ lang.locationaction = C(
 )
 lang.param2action = S("t", lang.int, ",", lang.int, P{action=1, param1=2, param2=4}) 
 lang.paramaction = S(C("[egostz]", "[E][fud]", "Ct", "I[cs]"), C(lang.number, lang.string, lang.boolvar), P{action=1, param=2})
-lang.simpleaction = C("[cefblrudq]", "[ABCDEGHMPS][fud]", "Gb", "If")
+lang.simpleaction = C("[cefblrudq]", "[ABCDEGHMPS][fud]", "Gb", "I[cfs]")
 lang.extension = S("%%", lang.token, Z(S(",", C(lang.token, lang.string, lang.number), P{2})), "%%", P{extension=2, params=3})
 lang.action = {}
 lang.joiner = S("/", O(lang.action))

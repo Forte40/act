@@ -1,6 +1,7 @@
--- set home
-w<home>
--- print reminder
+-- check for fuel >= 60 or quit
+(~If>=60 o"fuel up the turtle first" q)
+
+-- print chest reminder
 o"place a chest the under turtle"
 
 -- tree loop start
@@ -31,8 +32,8 @@ o"place a chest the under turtle"
     (?If<64 e1)
   )*
 
-  -- go back home, y coord first (down)
-  G<home,yxz>
+  -- go back down
+  (~Hd Gd)* b
 
   -- loop through slots 3-16
   -- drop if item count is > 0
