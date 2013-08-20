@@ -140,6 +140,7 @@ if turtle and not turtle.act then
     turtle.y = y or 0
     turtle.z = z or 0
     turtle.facing = facing or 0
+    turtle.saveLocation()
   end
 
   turtle.saveLocation = function ()
@@ -181,6 +182,13 @@ if turtle and not turtle.act then
 
   -- waypoints
   turtle.waypoint = {}
+  turtle.loadWaypoints = function ()
+    local waypoints = loadFile("waypoint")
+    if waypoints then
+      turtle.waypoint = waypoint
+    end
+  end
+  turtle.loadWaypoints()
 
   turtle.setWaypoint = function (name, useFacing)
     if useFacing == nil then useFacing = true end
@@ -1099,7 +1107,9 @@ end
 function interpret(ast, env)
   if fs.exists("startup") then
     -- wrap startup
-    fs.move("startup", ".act.startup")
+    if not fs.exists(".act.startup") then
+      fs.move("startup", ".act.startup")
+    end
   end
   local f = fs.open("startup", "w")
   f.write([[
