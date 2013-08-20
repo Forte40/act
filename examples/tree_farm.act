@@ -1,10 +1,8 @@
 %config,depth,width,spacing,wait_time%
-%request,64,dirt,1
-        ,64,saplings,2%
 
 (
   s1 ?Bd Md   -- check for sapling
-  (~Cd (s## ?Ic>0)4,16 Dd Bd (?Ic>0 t1)) -- check for dirt
+  (~Cd (s##=#a ?Ic>0)4,16 Dd s1 Bd s#a (?Ic>0 t1)) -- check for dirt
   Mu s2 Bd    -- plant sapling
 )=%plant%
 
@@ -25,7 +23,7 @@
   (s## ~Ef1)3,16 -- drop 1 fuel in
   Gd Gf ll       -- move under furnace
   z80 s2 Su
-  s3 (?Ic>1 e1)  -- eat all but one
+  s3 (?Ic>1 e1)*  -- eat all but one
 )=%refuel%
 
 (
@@ -53,7 +51,13 @@
   l2
 )=%getsapling%
 
+%request,64,dirt,1%
+%getsapling%
+%request,64,saplings,2%
+
 (
+  %request,16,dirt,1
+          ,16,saplings,2%
   Gf u
   %nexttree%
   (
