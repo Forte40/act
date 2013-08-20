@@ -1,26 +1,70 @@
+%config,depth,width,spacing,wait_time%
 %request,64,dirt,1
         ,64,saplings,2%
-(s1 ?Bd Md (~Cd Dd Bd) Mu s2 Bd)=%plant%
-(Dd (?Cu Mu (?If<1000 e1))*=#h d#h)=%chop%
 
 (
-Mf3
-(s## ?Ic>0)3,16=#a -- select free spot
-Mf
-(?Ic>0
-  (?Ic>0 t##)#a=#b -- consolidate and select
-  (?Ic==0 s#b)
-  %chop%
-)
+  s1 ?Bd Md   -- check for sapling
+  (~Cd Dd Bd) -- check for dirt
+  Mu s2 Bd    -- plant sapling
+)=%plant%
+
+(
+  Dd              -- chop down
+  (?Cu Mu         -- chop up
+    (?If<1000 e1) -- refuel if needed
+  )*=#h
+  d#h             -- go down
+)=%chop%
+
+(
+  ?If<1000
+  ?%peripheral,match,top,furnace%
+  Gf rr Gu2 Gf   -- move above furnace
+  (s## Ed)4,16   -- drop logs in
+  Gb Gd          -- move in front
+  (s## ~Ef1)3,16 -- drop 1 fuel in
+  Gd Gf ll       -- move under furnace
+  z80 s2 Su
+  s3 (?Ic>1 e1)  -- eat all but one
+)=%refuel%
+
+(
+  Mf3
+  (s## ?Ic>0)4,16=#a -- select free
+  Mf
+  (?Ic>0
+    (?Ic>0 t##)#a=#b -- consolidate
+    (?Ic==0 s#b)
+    %chop%
+  )
 )=%nexttree%
 
-%nexttree%
 (
+  r                  -- face sapling chest
+  (s##=#a ?Ic>0)4,16 -- get free spot
   (
-    (%plant% / %nexttree%)4
-    / r %nexttree% r
-  )2 
-  / l %nexttree% l
-)2
+    s2 ?Is>0 ?Sf     -- while need stuff and can get stuff
+    s#a (?Ic>0 rEfl) -- drop excess in other chest
+  )*
+  r s#a
+  (
+    ?Sf ?Ic>0 lEfr   -- put stuff back in chest
+  )*
+  l2
+)=%getsapling%
 
-Mf4 r Mf16 r
+(
+  %nexttree%
+  (
+    (
+      (%plant% / %nexttree%)4
+      / r %nexttree% r
+    )2 
+    / l %nexttree% l
+  )2
+
+  Mf3 r Mf12 r Gb
+  %refuel%
+  l (s## ?Ic>0 Ef)4,16 r -- drop off logs
+  z100
+)*

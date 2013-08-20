@@ -423,6 +423,7 @@ if turtle and not turtle.act then
   turtle.select = function (slot)
     if turtle._select(slot) then
       turtle.selected = slot
+      return slot
     end
   end
 
