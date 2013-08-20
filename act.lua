@@ -39,8 +39,9 @@ function unserialize( s )
   end
 end
 
-function saveFile(fileName, table)
-  local f = io.open(".act." .. fileName, "w")
+function saveFile(name, table, visible)
+  local filename = visible and name or ".act."..name
+  local f = io.open(".act." .. filename, "w")
   f:write(serialize(table))
   f:close()
 end
@@ -1074,6 +1075,7 @@ local tExtensions = {
         end
       end
     end
+    saveFile(filename, turtle.config, true)
   end
 }
 
