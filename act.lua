@@ -140,7 +140,7 @@ if turtle and not turtle.act then
     turtle.x = x or 0
     turtle.y = y or 0
     turtle.z = z or 0
-    turtle.facing = facing or 0
+    turtle.facing = facing or turtle.facing
     turtle.saveLocation()
   end
 
@@ -168,6 +168,7 @@ if turtle and not turtle.act then
       if turtle.fuel == currFuel and move ~= "l" and move ~= "r" then
         return false -- no update occured
       elseif turtle.fuel == currFuel + 1 or move ~= "l" or move ~= "r"  then
+        print("updating location")
         turtle.update(move)
         deleteFile("move")
         return true -- location updated
@@ -307,22 +308,28 @@ if turtle and not turtle.act then
 
   turtle.update = function (move)
     if move == "f" then
+      print("adjusting forward")
       turtle.x = turtle.x + coord_change[turtle.facing][1]
       turtle.z = turtle.z + coord_change[turtle.facing][2]
       turtle.fuel = turtle.fuel - 1
     elseif move == "b" then
+      print("adjusting back")
       turtle.x = turtle.x - coord_change[turtle.facing][1]
       turtle.z = turtle.z - coord_change[turtle.facing][2]
       turtle.fuel = turtle.fuel - 1
     elseif move == "u" then
+      print("adjusting up")
       turtle.y = turtle.y + 1
       turtle.fuel = turtle.fuel - 1
     elseif move == "d" then
+      print("adjusting down")
       turtle.y = turtle.y - 1
       turtle.fuel = turtle.fuel - 1
     elseif move == "l" then
+      print("adjusting left")
       turtle.facing = (turtle.facing - 1) % 4
     elseif move == "r" then
+      print("adjusting right")
       turtle.facing = (turtle.facing + 1) % 4
     end
     turtle.saveLocation()
