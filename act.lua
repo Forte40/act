@@ -41,7 +41,7 @@ end
 
 function saveFile(name, table, visible)
   local filename = visible and name or ".act."..name
-  local f = io.open(".act." .. filename, "w")
+  local f = io.open(filename, "w")
   f:write(serialize(table))
   f:close()
 end
@@ -1010,10 +1010,10 @@ local tHandlers = {
 -- extensions ------------------------------------------------------------------
 
 local tExtensions = {
-  ["gps"] = function (getFacing)
+  ["gps"] = function (env, getFacing)
     return 1, turtle.gps(getFacing)
   end,
-  ["request"] = function (...)
+  ["request"] = function (env, ...)
     for r = 1, arg.n, 3 do
       local count, desc, slot = arg[r], arg[r+1], arg[r+2]
       if slot and desc and count then
@@ -1045,7 +1045,7 @@ local tExtensions = {
     end
     return 1, true
   end,
-  ["peripheral"] = function (...)
+  ["peripheral"] = function (env, ...)
     local cmd = arg[1]
     if cmd == "match" then
       return 0, peripheral.getType(arg[2]):find(arg[3]) ~= nil
@@ -1060,7 +1060,7 @@ local tExtensions = {
       return 0, turtle.peripheral[arg[2]](unpack(args))
     end
   end,
-  ["config"] = function (...)
+  ["config"] = function (env, ...)
     local filename = arg[1]..".config"
     turtle.config = {}
     if fs.exists(filename) then
@@ -1073,6 +1073,7 @@ local tExtensions = {
           local data = io.read()
           turtle.config[arg[i]] = tonumber(data)
         end
+        env.num[string.char(63+i)] = turtle.config[arg[i]]
       end
     end
     saveFile(filename, turtle.config, true)
@@ -1376,7 +1377,7 @@ function eval(ast, env, depth)
     end
   elseif ast.extension then
     if tExtensions[ast.extension] then
-      return tExtensions[ast.extension](unpack(ast.params))
+      return tExtensions[ast.extension](env, unpack(ast.params))
     else
       return 0, true
     end
