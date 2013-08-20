@@ -2,7 +2,6 @@
         ,64,saplings,2%
 (s1 ?Bd Md (~Cd Dd Bd) Mu s2 Bd)=%plant%
 (Dd (?Cu Mu)*=#h d#h)=%chop%
-(s## ?Ic##>0)3,16 -- select next free slot
 
 (
 Mf3
@@ -15,14 +14,10 @@ Mf
 )
 )=%nexttree%
 
-Mf4
-(?Hf Df s0)
-
-
 %nexttree%
 (
   (
-    %plant% / %nexttree%)4
+    (%plant% / %nexttree%)4
     / r %nexttree% r
   )2 
   / l %nexttree% l
