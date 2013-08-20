@@ -1,17 +1,22 @@
-%config,depth,width,spacing,wait_time%
+%config,tree_farm,depth,width,spacing,wait_time%
 
 (
   s1 ?Bd Md   -- check for sapling
-  (~Cd (s##=#a ?Ic>0)4,16 Dd s1 Bd s#a (?Ic>0 t1)) -- check for dirt
+  ( 
+    ~Cd                -- check for dirt
+    (s##=#a ?Ic>0)4,16 -- find free
+    Dd s1 Bd s#a       -- place dirt
+    (?Ic>0 t1)         -- move replaced block
+  )
   Mu s2 Bd    -- plant sapling
 )=%plant%
 
 (
-  Dd              -- chop down
+  Dd              -- chop down 1
   (?Cu Mu         -- chop up
     (?If<1000 e1) -- refuel if needed
   )*=#h
-  d#h             -- go down
+  d#h             -- go back down
 )=%chop%
 
 (
@@ -27,7 +32,7 @@
 )=%refuel%
 
 (
-  Mf3
+  Mf#C
   (s## ?Ic>0)4,16=#a -- select free
   Mf
   (?Ic>0
@@ -62,14 +67,14 @@
   %nexttree%
   (
     (
-      (%plant% / %nexttree%)4
+      (%plant% / %nexttree%)#A
       / r %nexttree% r
     )2 
     / l %nexttree% l
-  )2
+  )#B
 
-  Mf4 r Mf12 r d Gb
+  Mf#C Mf r (Mf#CMf/Mf#CMf)#B r d Gb
   %refuel%
   l (s## (?Ic>0 Ef))4,16 r -- drop off logs
-  z100
+  z#D
 )*
