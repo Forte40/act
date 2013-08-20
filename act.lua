@@ -1049,28 +1049,28 @@ local tExtensions = {
     if cmd == "match" then
       return 0, peripheral.getType(arg[2]):find(arg[3]) ~= nil
     elseif cmd == "wrap" then
-      act.peripheral = peripheral.wrap(arg[2])
-      return 0, act.peripheral ~= nil
+      turtle.peripheral = peripheral.wrap(arg[2])
+      return 0, turtle.peripheral ~= nil
     else
       local args = {}
       for i = 3, arg.n do
         args[i-2] = arg[i]
       end
-      return 0, act.peripheral[arg[2]](unpack(args))
+      return 0, turtle.peripheral[arg[2]](unpack(args))
     end
   end,
   ["config"] = function (...)
     local filename = arg[1]..".config"
-    act.config = {}
+    turtle.config = {}
     if fs.exists(filename) then
-      act.config = loadFile(filename, true)
+      turtle.config = loadFile(filename, true)
     end
     for i = 2, arg.n do
       if arg[i] then
-        if act.config[arg[i]] == nil then
+        if turtle.config[arg[i]] == nil then
           io.write("enter "..arg[i]..": ")
           local data = io.read()
-          act.config[arg[i]] = tonumber(data)
+          turtle.config[arg[i]] = tonumber(data)
         end
       end
     end
