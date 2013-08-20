@@ -1041,6 +1041,21 @@ local tExtensions = {
       end
     end
     return 1, true
+  end,
+  ["peripheral"] = function (...)
+    local cmd = arg[1]
+    if cmd == "match" then
+      return peripheral.getType(arg[2]):find(arg[3])
+    elseif cmd == "wrap" then
+      turtle.peripheral = peripheral.wrap(arg[2])
+      return turtle.peripheral ~= nil
+    else
+      local args = {}
+      for i = 3, arg.n do
+        args[i-2] = arg[i]
+      end
+      return turtle.peripheral[arg[2]](unpack(args))
+    end
   end
 }
 

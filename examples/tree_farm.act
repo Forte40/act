@@ -1,15 +1,15 @@
 %request,64,dirt,1
         ,64,saplings,2%
 (s1 ?Bd Md (~Cd Dd Bd) Mu s2 Bd)=%plant%
-(Dd (?Cu Mu)*=#h d#h)=%chop%
+(Dd (?Cu Mu (?If<1000 e1))*=#h d#h)=%chop%
 
 (
 Mf3
 (s## ?Ic>0)3,16=#a -- select free spot
 Mf
 (?Ic>0
-  (?Ic>0 t##)#a=#b - consolidate and select
-  s#b
+  (?Ic>0 t##)#a=#b -- consolidate and select
+  (?Ic==0 s#b)
   %chop%
 )
 )=%nexttree%
