@@ -680,7 +680,7 @@ lang.locationaction = C(
   S("[Gw]", "<", lang.token, M(S(",", lang.token, P{2})), ">", P({waypointtype=1, waypoint=3, priority=4}))
 )
 lang.param2action = S("t", lang.int, ",", lang.int, P{action=1, param1=2, param2=4}) 
-lang.paramaction = S(C("[egostz]", "[E][fud]", "Ct", "I[cs]"), C(lang.number, lang.string, lang.boolvar), P{action=1, param=2})
+lang.paramaction = S(C("[cegostz]", "[E][fud]", "Ct", "I[cs]"), C(lang.number, lang.string, lang.boolvar), P{action=1, param=2})
 lang.simpleaction = C("[cefblrudq]", "[ABCDEGHMPS][fud]", "Gb", "I[cfs]")
 lang.extension = S("%%", lang.token, Z(S(",", C(lang.token, lang.string, lang.number), P{2})), "%%", P{extension=2, params=3})
 lang.action = {}
@@ -1148,44 +1148,59 @@ local function sendViaModem(ast, env)
   end
 end
 
-function interpret(ast, env)
+function interpret(ast, env, ext)
+  local wrap = true
   if fs.exists("startup") then
     -- wrap startup
     if not fs.exists(".act.startup") then
-      fs.move("startup", ".act.startup")
+      local f = open("startup", "r")
+      local text = f.readAll()
+      f.close()
+      if text:find("act startup wrapper") then
+        wrap = false
+      else
+        fs.move("startup", ".act.startup")
+      end
     end
   end
-  local f = fs.open("startup", "w")
-  f.write([[
-os.loadAPI("apis/act")
-local ast = act.loadFile("ast")
-if ast then
-  local env = act.loadFile("env")
-  if env then
-    print("resuming...")
-    act.interpret(ast, env)
+  if wrap then
+    local f = fs.open("startup", "w")
+    f.write([[
+      -- act startup wrapper
+      os.loadAPI("apis/act")
+      local ast = act.loadFile("ast")
+      if ast then
+        local env = act.loadFile("env")
+        if env then
+          local ext = act.loadFile("ext")
+          print("resuming...")
+          act.interpret(ast, env, ext)
+        end
+      end
+  ]])
+    f.close()
   end
-end
-]])
-  f.close()
-  saveFile("ast", ast)
-  eval(ast, env, 1)
-  deleteFile("ast")
-  deleteFile("env")
-  fs.delete("startup")
-  if fs.exists(".act.startup") then
-    fs.move(".act.startup", "startup")
-    --shell.run("startup")
-  end
-end
-
-function eval(ast, env, depth)
-  depth = depth or 1
   env = env or {}
-  env.depth = depth
   env.num = env.num or {}
   env.bool = env.bool or {}
   env.pointer = env.pointer or {}
+  ext = ext or {}
+  saveFile("ast", ast)
+  saveFile("env", env)
+  saveFile("ext", ext)
+  eval(ast, env, ext, 1)
+  deleteFile("ast")
+  deleteFile("env")
+  deleteFile("ext")
+  fs.delete("startup")
+  if fs.exists(".act.startup") then
+    fs.move(".act.startup", "startup")
+    shell.run("startup")
+  end
+end
+
+function eval(ast, env, ext, depth)
+  env.depth = depth
   if not env.workers then
     env.workers = {}
   end
@@ -1223,7 +1238,8 @@ function eval(ast, env, depth)
               break
             end
           else
-            rep, succ = eval(ast.actions[ptr.step], env, depth + 1)
+            io.write(tostring(ptr.step)..": ")
+            rep, succ = eval(ast.actions[ptr.step], env, ext, depth + 1)
             env.pointer[depth + 1] = nil
           end
         end
@@ -1231,7 +1247,8 @@ function eval(ast, env, depth)
           if ptr.step > #ast.join then
             break
           else
-            rep, succ = eval(ast.join[ptr.step], env, depth + 1)
+            io.write("j"..tostring(ptr.step)..": ")
+            rep, succ = eval(ast.join[ptr.step], env, ext, depth + 1)
             env.pointer[depth + 1] = nil
           end
         end
@@ -1254,12 +1271,8 @@ function eval(ast, env, depth)
     end
   elseif ast.action then
     if ast.variable and ast.variable.vartype == "ext" then
-      registerExtension(ast.variable.name, function ()
-        local action = {action=ast.action, count=ast.count, predicate=ast.predicate}
-        local rep, succ = eval(action, env, env.depth)
-        env.pointer[env.depth] = nil
-        return rep, succ
-      end)
+      ext[ast.variable.name] = {action=ast.action, count=ast.count, start=ast.start, predicate=ast.predicate}
+      saveFile("ext", ext)
       return 1, true
     else
       local predicate = ast.predicate
@@ -1278,6 +1291,7 @@ function eval(ast, env, depth)
         if ast.param then
           if ptr.iter == 1 then
             local p = getValue(env, ast.param)
+            io.write(ast.action.."("..tostring(p)..") ")
             succ = func(p)
             ptr.iter = ptr.iter + 1
             saveFile("env", env)
@@ -1286,6 +1300,7 @@ function eval(ast, env, depth)
           if ptr.iter == 1 then
             local p1 = getValue(env, ast.param1)
             local p2 = getValue(env, ast.param2)
+            io.write(ast.action.."("..tostring(p1)..","..tostring(p2)..") ")
             succ = func(p1, p2)
             ptr.iter = ptr.iter + 1
             saveFile("env", env)
@@ -1294,6 +1309,7 @@ function eval(ast, env, depth)
           while true do
             if ptr.iter <= ptr.count then
               if not turtle.updateLocation() then
+                io.write(ast.action.." ")
                 succ = func()
               end
               if not succ then break end
@@ -1308,7 +1324,9 @@ function eval(ast, env, depth)
       else
         while true do
           if ptr.iter <= ptr.count then
-            rep, succ = eval(ast.action, env, depth + 1)
+            io.write("{ ")
+            rep, succ = eval(ast.action, env, ext, depth + 1)
+            io.write("} ")
             env.pointer[depth + 1] = nil
             if not succ then
               saveFile("env", env)
@@ -1376,9 +1394,14 @@ function eval(ast, env, depth)
       return 1, true
     end
   elseif ast.extension then
-    if tExtensions[ast.extension] then
+    if ext[ast.extension] then
+      local rep, succ = eval(ext[ast.extension], env, ext, depth)
+      env.pointer[depth] = nil
+      return rep, succ
+    elseif tExtensions[ast.extension] then
       return tExtensions[ast.extension](env, unpack(ast.params))
     else
+      print("unknown extension "..ast.extension)
       return 0, true
     end
   end

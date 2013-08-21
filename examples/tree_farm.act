@@ -58,11 +58,11 @@
 
 %request,64,dirt,1%
 %getsapling%
-%request,64,saplings,2%
+%request,1,saplings,2%
 
 (
-  %request,16,dirt,1
-          ,16,saplings,2%
+  %request,1,dirt,1
+          ,1,saplings,2%
   Gf u
   %nexttree%
   (

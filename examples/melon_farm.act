@@ -13,11 +13,11 @@
       )#B / r Mf r  -- #B is length
     )2 / l Mf3 l    -- row has 2 lines
   )#A               -- #A is rows
-  r (Mf4)#A Mf r
+  r (Mf / Mf3)#A r
 )=%plantrows%
 
 (
-  l Mf r
+  s2 l Mf r
   (
     (
       (
@@ -26,7 +26,7 @@
       )#B / r Mf3 r -- #B is length
     )2 / l Mf l     -- row has 2 lines
   )#A               -- #A is rows
-  r (Mf4)#A Mf2 r
+  r (Mf / Mf3)#A Mf r
 )=%harvest%
 
 (
