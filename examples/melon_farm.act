@@ -1,0 +1,65 @@
+%config,melon_farm,rows,length,wait_time%
+--                 #A   #B     #C
+
+-- turtle should be in position
+-- up one and on left side of row
+(
+  s1
+  (
+    (
+      (
+        (?Ic>0 ~Hd Dd Bd) -- plant seed
+        / Mf
+      )#B / r Mf r  -- #B is length
+    )2 / l Mf3 l    -- row has 2 lines
+  )#A               -- #A is rows
+  r (Mf4)#A Mf r
+)=%plantrows%
+
+(
+  l Mf r
+  (
+    (
+      (
+        (?Hd Dd)    -- harvest
+        / Mf
+      )#B / r Mf3 r -- #B is length
+    )2 / l Mf l     -- row has 2 lines
+  )#A               -- #A is rows
+  r (Mf4)#A Mf2 r
+)=%harvest%
+
+(
+  ?If<1000
+  (s## ?Ic>0)16 -- select free slot
+  Su e
+  s1
+  (
+    ?If<1000
+    %request,1,fuel,1%
+    e
+  )
+)=%refuel%
+
+(
+  r
+  (s## (~Ct1 Ef))2,16 -- drop off product
+  s1
+  (
+    ?Ic==0   -- check if seeds needed
+    Sf c -- craft seeds
+  )
+  l
+)=%restock%
+
+%request,1,seed,1%
+
+(
+  %refuel%
+  u Gf2
+  %plantrows%
+  %harvest%
+  Gb2 d
+  %restock%
+  z#C
+)*
