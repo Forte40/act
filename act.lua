@@ -1138,19 +1138,19 @@ end
 function evalCalc(ast, env)
   if type(ast) == "table" then
     if ast.op == "+" then
-      return evalCalc(ast.left) + evalCalc(ast.right)
+      return evalCalc(ast.left, env) + evalCalc(ast.right, env)
     elseif ast.op == "-" then
-      return evalCalc(ast.left) - evalCalc(ast.right)
+      return evalCalc(ast.left, env) - evalCalc(ast.right, env)
     elseif ast.op == "*" then
-      return evalCalc(ast.left) * evalCalc(ast.right)
+      return evalCalc(ast.left, env) * evalCalc(ast.right, env)
     elseif ast.op == "/" then
-      return evalCalc(ast.left) / evalCalc(ast.right)
+      return evalCalc(ast.left, env) / evalCalc(ast.right, env)
     elseif ast.op == "//" then
-      return math.floor(evalCalc(ast.left) / evalCalc(ast.right))
+      return math.floor(evalCalc(ast.left, env) / evalCalc(ast.right, env))
     elseif ast.op == "%" then
-      return evalCalc(ast.left) % evalCalc(ast.right)
+      return evalCalc(ast.left, env) % evalCalc(ast.right, env)
     elseif ast.op == "^" then
-      return evalCalc(ast.left) ^ evalCalc(ast.right)
+      return evalCalc(ast.left, env) ^ evalCalc(ast.right, env)
     end
   else
     if tonumber(ast) then
@@ -1164,7 +1164,7 @@ end
 function getValue(env, var)
   if type(var) == "table" then
     if var.calc then
-      return evalCalc(var.calc)
+      return evalCalc(var.calc, env)
     elseif var.vartype == "num" and var.name == "_" then
       for i = env.depth - 1, 1, -1 do
         if env.pointer[i].iter then
