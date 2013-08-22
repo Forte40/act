@@ -2,7 +2,8 @@
 
 (
   s1 Sd ?Bd Md   -- check for sapling
-  ( 
+  (
+    (Sf r)4            -- vacuum saplings
     ~Cd                -- check for dirt
     (s#_=#a ?Ic>0)4,16 -- find free
     Dd s1 Bd s#a       -- place dirt
