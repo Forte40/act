@@ -31,7 +31,7 @@
 
 (
   ?If<1000
-  (s## ?Ic>0)16 -- select free slot
+  (s#_ ?Ic>0)16 -- select free slot
   Su e
   s1
   (
@@ -43,7 +43,7 @@
 
 (
   r
-  (s## (~Ct1 Ef))2,16 -- drop off product
+  (s#_ (~Ct1 Ef))2,16 -- drop off product
   s1
   (
     ?Ic==0   -- check if seeds needed

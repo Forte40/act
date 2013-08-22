@@ -1163,7 +1163,7 @@ end
 
 function getValue(env, var)
   if type(var) == "table" then
-    if var.vartype == "num" and var.name == "#" then
+    if var.vartype == "num" and var.name == "_" then
       for i = env.depth - 1, 1, -1 do
         if env.pointer[i].iter then
           return env.pointer[i].iter

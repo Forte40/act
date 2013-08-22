@@ -4,7 +4,7 @@
   s1 ?Bd Md   -- check for sapling
   ( 
     ~Cd                -- check for dirt
-    (s##=#a ?Ic>0)4,16 -- find free
+    (s#_=#a ?Ic>0)4,16 -- find free
     Dd s1 Bd s#a       -- place dirt
     (?Ic>0 t1)         -- move replaced block
   )
@@ -23,9 +23,9 @@
   ?If<1000
   ?%peripheral,match,top,furnace%
   Gf rr Gu2 Gf   -- move above furnace
-  (s## Ed)4,16   -- drop logs in
+  (s#_ Ed)4,16   -- drop logs in
   Gb Gd          -- move in front
-  (s## ~Ef1)3,16 -- drop 1 fuel in
+  (s#_ ~Ef1)3,16 -- drop 1 fuel in
   Gd Gf ll       -- move under furnace
   z80 s2 Su
   s3 (?Ic>1 e1)*  -- eat all but one
@@ -33,10 +33,10 @@
 
 (
   Mf#C
-  (s## ?Ic>0)4,16=#a -- select free
+  (s#_ ?Ic>0)4,16=#a -- select free
   Mf
   (?Ic>0
-    (?Ic>0 t##)4,#a=#b -- consolidate
+    (?Ic>0 t#_)4,#a=#b -- consolidate
     (?Ic==0 s#b)
     %chop%
   )
@@ -44,7 +44,7 @@
 
 (
   r                  -- face sapling chest
-  (s##=#a ?Ic>0)3,16 -- get free spot
+  (s#_=#a ?Ic>0)3,16 -- get free spot
   (
     s2 ?Is>0 ?Sf     -- while need stuff and can get stuff
     s#a (?Ic>0 rEfl) -- drop excess in other chest
@@ -75,6 +75,6 @@
 
   Mf#C Mf r (Mf#CMf/Mf#CMf)#B r d Gb
   %refuel%
-  l (s## (?Ic>0 Ef))4,16 r -- drop off logs
+  l (s#_ (?Ic>0 Ef))4,16 r -- drop off logs
   z#D
 )*
