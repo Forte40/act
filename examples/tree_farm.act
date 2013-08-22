@@ -1,7 +1,7 @@
 %config,tree_farm,depth,width,spacing,wait_time%
 
 (
-  s1 ?Bd Md   -- check for sapling
+  s1 Sd ?Bd Md   -- check for sapling
   ( 
     ~Cd                -- check for dirt
     (s#_=#a ?Ic>0)4,16 -- find free
