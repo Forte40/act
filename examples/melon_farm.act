@@ -1,5 +1,5 @@
 %config,melon_farm,rows,length,seed_yield,wait_time%
---                 #A   #B     #C
+--                 #A   #B     #C         #D
 -- #a = total plants
 -- #b = planted
 -- #c = seeds needed

@@ -1450,9 +1450,10 @@ function eval(ast, env, ext, depth)
       return 1, true
     end
   elseif ast.extension then
+    local params = {}
     for i, param in ipairs(ast.params) do
       if type(param) == "table" then
-        ast.params[i] = getValue(env, param)
+        params[i] = getValue(env, param)
       end
     end
     if ext[ast.extension] then
@@ -1460,7 +1461,7 @@ function eval(ast, env, ext, depth)
       env.pointer[depth] = nil
       return rep, succ
     elseif tExtensions[ast.extension] then
-      return tExtensions[ast.extension](env, unpack(ast.params))
+      return tExtensions[ast.extension](env, unpack(params))
     else
       print("unknown extension "..ast.extension)
       return 0, true
