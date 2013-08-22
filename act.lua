@@ -1454,6 +1454,7 @@ function eval(ast, env, ext, depth)
       if type(param) == "table" then
         ast.params[i] = getValue(env, param)
       end
+    end
     if ext[ast.extension] then
       local rep, succ = eval(ext[ast.extension], env, ext, depth)
       env.pointer[depth] = nil
