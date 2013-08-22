@@ -1163,7 +1163,9 @@ end
 
 function getValue(env, var)
   if type(var) == "table" then
-    if var.vartype == "num" and var.name == "_" then
+    if var.calc then
+      return evalCalc(var.calc)
+    elseif var.vartype == "num" and var.name == "_" then
       for i = env.depth - 1, 1, -1 do
         if env.pointer[i].iter then
           return env.pointer[i].iter
@@ -1471,9 +1473,9 @@ function parse(plan, rule)
   if pos and pos > plan:len() then
     return ast
   else
-    --print(plan)
-    --print(string.rep("-", highpos-1).."^")
-    --print("failure at "..tostring(highpos))
+    print(plan)
+    print(string.rep("-", highpos-1).."^")
+    print("failure at "..tostring(highpos))
     return nil, plan .. "\n" .. string.rep("-", highpos-1) .. "^"
   end
 end
@@ -1515,7 +1517,13 @@ end
 
 tArgs = { ... }
 if tArgs[1] then
-  local ast = parse(tArgs[1])
+  local plan = tArgs[1]
+  local f = io.open(plan, "r")
+  if f ~= nil then
+    plan = f:read("*a")
+    f:close()
+  end
+  local ast = parse(plan)
   tprint(ast)
   if ast then
     tprint(getWorkers(ast))

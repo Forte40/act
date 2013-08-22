@@ -20,7 +20,7 @@
       (
         (
           ?Hd
-          %set,f,#f+1#  -- inc existing
+          %set,f,#f+1#% -- inc existing
         )
         (
           ~Hd ?Ic>0
