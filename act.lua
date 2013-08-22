@@ -1452,9 +1452,7 @@ function eval(ast, env, ext, depth)
   elseif ast.extension then
     local params = {}
     for i, param in ipairs(ast.params) do
-      if type(param) == "table" then
-        params[i] = getValue(env, param)
-      end
+      params[i] = getValue(env, param)
     end
     if ext[ast.extension] then
       local rep, succ = eval(ext[ast.extension], env, ext, depth)
