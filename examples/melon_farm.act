@@ -1,23 +1,47 @@
-%config,melon_farm,rows,length,wait_time%
+%config,melon_farm,rows,length,seed_yield,wait_time%
 --                 #A   #B     #C
+-- #a = total plants
+-- #b = planted
+-- #c = seeds needed
+-- #d = full rows to harvest
+-- #e = last row length to harvest
+-- #f = existing plants
+-- #g = new plants
 
 -- turtle should be in position
 -- up one and on left side of row
 (
-  s1
+  o"planting...\n"
+  %set,f,0%
+  %set,g,0%
+  s1 u Gf2
   (
     (
       (
-        (?Ic>0 ~Hd Dd Bd) -- plant seed
+        (
+          ?Hd
+          %set,f,#f+1#  -- inc existing
+        )
+        (
+          ~Hd ?Ic>0
+          %set,g,#g+1#% -- inc new
+          Dd Bd         -- plant seed
+        )
         / Mf
-      )#B / r Mf r  -- #B is length
-    )2 / l Mf3 l    -- row has 2 lines
-  )#A               -- #A is rows
-  r (Mf / Mf3)#A r
+      )#B / r Mf r    -- #B is length
+    )2 / l Mf3 l      -- row has 2 lines
+  )#A                 -- #A is rows
+  o"existing plants: "
+  o#f
+  o"\nnew plants: "
+  o#g
+  o"\n"
+  r Mf#A*4-3# r Gb2 d -- return
 )=%plantrows%
 
 (
-  s2 l Mf r
+  u Gf2 s2 l Mf r
+  -- harvest full rows
   (
     (
       (
@@ -25,8 +49,15 @@
         / Mf
       )#B / r Mf3 r -- #B is length
     )2 / l Mf l     -- row has 2 lines
-  )#A               -- #A is rows
-  r (Mf / Mf3)#A Mf r
+  )#d               -- #d is full rows to harvest
+  -- harvest last row
+  (
+    (
+      (?Hd Dd)    -- harvest
+      / Mf
+    )#e / r Mf3 r -- #e is length of last row
+  )2  
+  r Mf#d*4+2# r Gb2 d -- return
 )=%harvest%
 
 (
@@ -43,23 +74,33 @@
 
 (
   r
-  (s#_ (~Ct1 Ef))2,16 -- drop off product
+  (s#_ (~Ct1 Ef))16 -- drop off product
   s1
   (
-    ?Ic==0   -- check if seeds needed
-    Sf c -- craft seeds
+    o"need "
+    o#c
+    o" seeds\n"
+    ?Ic<#c -- check if seeds needed
+    o"making seeds...\n"
+    (?Ic>#c//C# Ef1)*
+    Sf c   -- craft seeds
   )
   l
 )=%restock%
 
+%refuel%
 %request,1,seed,1%
-
+%set,a,#A*B*2#%
+%set,b,0%
+%plantrows%
+%set,b,#f+g#%
 (
-  %refuel%
-  u Gf2
-  %plantrows%
+  -- calculate harvest run numbers
+  %set,c,#a-b#%
+  %set,d,#(b-1)//(B*2)#%
+  %set,e,#(b-d*B*2-1)//2+1#%
   %harvest%
-  Gb2 d
   %restock%
-  z#C
+  %refuel%
+  z#D
 )*
