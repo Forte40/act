@@ -32,7 +32,7 @@ local files = {
   {
     name = "panel",
     folder = "apis",
-    url = "https://raw.github.com/Forte40/act/master/panel.lua"
+    url = "https://raw.github.com/Forte40/panel/master/panel.lua"
   }
 }
 
