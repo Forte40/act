@@ -98,12 +98,12 @@
   -- calculate harvest run numbers
   %set,c,#a-b#%
   %set,d,#(b-1)//(B*2)#%
-  %set,e,#(b-d*B*2-1)//2+1#%
+  %set,e,#((b-d*B*2)-1)//2+1#%
   %harvest%
   %restock%
   %refuel%
   (
-    Ic>0
+    ?Ic>0
     %plantrows%
     %set,b,#b+g#%
   )
