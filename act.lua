@@ -1035,7 +1035,7 @@ local tHandlers = {
 -- extensions ------------------------------------------------------------------
 
 local tExtensions = {
-  ["set"]  function (env, name, value)
+  ["set"] = function (env, name, value)
     env.num[name] = value
   end,
   ["gps"] = function (env, getFacing)
