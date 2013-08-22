@@ -102,6 +102,10 @@
   %harvest%
   %restock%
   %refuel%
-  (Ic>0 %plantrows%)
+  (
+    Ic>0
+    %plantrows%
+    %set,b,#b+g#%
+  )
   z#D
 )*
