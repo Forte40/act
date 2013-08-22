@@ -131,7 +131,7 @@ if turtle and not turtle.act then
   turtle.z = 0
   turtle.facing = 0
   turtle.fuel = turtle.getFuelLevel()
-  turtle.selected = 0
+  turtle.selected = 1
   -- how much to change x and z when moving in a direction                      
   local coord_change = {[0] = { 0,  1}, -- south / forward
                         [1] = {-1,  0}, -- west  / right
@@ -147,7 +147,7 @@ if turtle and not turtle.act then
   end
 
   turtle.saveLocation = function (move)
-    saveFile("location", {x=turtle.x, y=turtle.y, z=turtle.z, facing=turtle.facing, fuel=turtle.getFuelLevel(), move=move})
+    saveFile("location", {x=turtle.x, y=turtle.y, z=turtle.z, facing=turtle.facing, fuel=turtle.getFuelLevel(), selected=turtle.selected, move=move})
     turtle.move = nil
   end
 
@@ -159,6 +159,7 @@ if turtle and not turtle.act then
       turtle.z = loc.z
       turtle.facing = loc.facing
       turtle.fuel = loc.fuel
+      turtle.selected = loc.selected
       turtle.move = loc.move
     end
   end
@@ -498,14 +499,14 @@ end
 
 local function N(rule, process) -- not predicate
   local r = {rule}
-  r.type = "*"
+  r.type = "!"
   r.process = process or nopprocess
   return r
 end
 
-local function A(rule, process) -- not predicate
+local function A(rule, process) -- and predicate
   local r = {rule}
-  r.type = "*"
+  r.type = "&"
   r.process = process or nopprocess
   return r
 end
@@ -667,11 +668,25 @@ lang.string = S('"',O(C('\\"', '[^"]'), P()),'"', function (ast)
   return ast[2]:gsub("\\n", "\n"):gsub('\\"', '"'):gsub("\\\\", "\\")
 end)
 lang.token = L("[%u%l%d_]+")
-lang.numvar = S("#", "[%u%l#]", P{vartype="num", name=2})
+lang.numvar = S("#", "[%u%l_]", P{vartype="num", name=2})
+lang.additive = {}
+lang.multiplicative = {}
+lang.exponential = {}
+lang.primary = C(lang.float, lang.int, "[%u%l_]", S("%(", lang.additive, "%)", P{2}))
+lang.exponent_op = L("%^")
+lang.mult_op = C("//", "[%%%*/]")
+lang.additive_op = L("[%+%-]")
+I(lang.exponential, C(S(lang.primary, N(lang.exponent_op), P{1}),
+                      S(lang.primary, lang.exponent_op, lang.exponential, P{left=1, right=3, op=2})))
+I(lang.multiplicative, C(S(lang.exponential, N(lang.mult_op), P{1}),
+                         S(lang.exponential, lang.mult_op, lang.multiplicative, P{left=1, right=3, op=2})))
+I(lang.additive, C(S(lang.multiplicative, N(lang.additive_op), P{1}),
+                  S(lang.multiplicative, lang.additive_op, lang.additive, P{left=1, right=3, op=2})))
+lang.calc = S("#", lang.additive, "#", P{calc=2})
 lang.boolvar = S("%$", "[%u%l]", P{vartype="bool", name=2})
 lang.extvar = S("%%", lang.token, "%%", P{vartype="ext", name=2})
 lang.worker = S(lang.token, ":", P{1})
-lang.number = C("%*", lang.float, lang.int, lang.numvar)
+lang.number = C("%*", lang.float, lang.int, lang.calc, lang.numvar)
 lang.variable = S("=", C(lang.numvar, lang.boolvar, lang.extvar), P{2})
 lang.predicate = L("[%?~]")
 lang.comparison = S(C("<", ">", "<=", ">=", "==", "~="), lang.number, P{operator=1, value=2})
@@ -741,11 +756,21 @@ lang.repeater = S(M(lang.int), M(lang.joiner), "%)", M(lang.number), P{repeatlin
 local planContainer = {seq = {"{", "}"},
                  par = {"(", ")"}}
 local varType = {num="#", bool="$"}
+local function compileCalc(ast)
+  if type(ast) == "table" then
+    return "("..compileCalc(ast.left)..ast.op..compileCalc(ast.right)..")"
+  else
+    return tostring(ast)
+  end
+end
 local function varString(v)
   if type(v) == "table" then
-    if v.vartype == "ext" then
+    if v.calc then
+      return "#"..compileCalc(v.calc).."#"
+    elseif v.vartype == "ext" then
       return "%"..v.name.."%"
     else
+      tprint(v)
       return varType[v.vartype]..v.name
     end
   else
@@ -1010,6 +1035,9 @@ local tHandlers = {
 -- extensions ------------------------------------------------------------------
 
 local tExtensions = {
+  ["set"]  function (env, name, value)
+    env.num[name] = value
+  end,
   ["gps"] = function (env, getFacing)
     return 1, turtle.gps(getFacing)
   end,
@@ -1107,6 +1135,32 @@ function getWorkers(ast)
   return workers
 end
 
+function evalCalc(ast, env)
+  if type(ast) == "table" then
+    if ast.op == "+" then
+      return evalCalc(ast.left) + evalCalc(ast.right)
+    elseif ast.op == "-" then
+      return evalCalc(ast.left) - evalCalc(ast.right)
+    elseif ast.op == "*" then
+      return evalCalc(ast.left) * evalCalc(ast.right)
+    elseif ast.op == "/" then
+      return evalCalc(ast.left) / evalCalc(ast.right)
+    elseif ast.op == "//" then
+      return math.floor(evalCalc(ast.left) / evalCalc(ast.right))
+    elseif ast.op == "%" then
+      return evalCalc(ast.left) % evalCalc(ast.right)
+    elseif ast.op == "^" then
+      return evalCalc(ast.left) ^ evalCalc(ast.right)
+    end
+  else
+    if tonumber(ast) then
+      return tonumber(ast)
+    else
+      return getValue(env, {vartype="num",name=ast})
+    end
+  end
+end
+
 function getValue(env, var)
   if type(var) == "table" then
     if var.vartype == "num" and var.name == "#" then
@@ -1153,7 +1207,7 @@ function interpret(ast, env, ext)
   if fs.exists("startup") then
     -- wrap startup
     if not fs.exists(".act.startup") then
-      local f = open("startup", "r")
+      local f = fs.open("startup", "r")
       local text = f.readAll()
       f.close()
       if text:find("act startup wrapper") then
