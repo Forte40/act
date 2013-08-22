@@ -28,6 +28,11 @@ local files = {
   {
     name = "worker",
     url = "https://raw.github.com/Forte40/act/"..branch.."/worker.lua"
+  },
+  {
+    name = "panel",
+    folder = "apis",
+    url = "https://raw.github.com/Forte40/act/master/panel.lua"
   }
 }
 
