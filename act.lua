@@ -24,7 +24,8 @@ function serialize(o, indent)
     end
     s = s .. indent .. "}"
   else
-    error("cannot serialize a " .. type(o))
+    s = s .. index .. "nil"
+    --error("cannot serialize a " .. type(o))
   end
   return s
 end
