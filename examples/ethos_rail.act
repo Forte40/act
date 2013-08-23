@@ -28,15 +28,15 @@
 -- turtle only confirms amount, not type
 --   slot, description, amount
 (
-  (Left:        %request, 1, brick, 18,
-                          2, bars,  14%)
-  (LeftCenter:  %request, 1, slab, 24%)
-  (Center:      %request, 1, brick, 15,
-                          2, track, 8,
-                          3, glowstone, 1%)
-  (RightCenter: %request, 1, slab, 24%)
-  (Right:       %request, 1, brick, 18,
-                          2, bars,  14%)
+  (Left:        %request, 18, brick,     1,
+                          14, bars,      2%)
+  (LeftCenter:  %request, 24, slab,      1%)
+  (Center:      %request, 15, brick,     1,
+                           8, track,     2,
+                           1, glowstone, 3%)
+  (RightCenter: %request, 24, slab,      1%)
+  (Right:       %request, 18, brick,     1,
+                          14, bars,      2%)
 )=%stock%
 
 -- routine to dig 1 space forward
