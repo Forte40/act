@@ -36,12 +36,27 @@ local files = {
   }
 }
 
-local scripts = {"ethos_rail", "tree_farm", "tree", "tree2", "melon_farm"}
+local scripts = {"startup", "ethos_rail", "tree_farm", "tree", "tree2", "melon_farm"}
 
 local cmd = ...
 if cmd == "list" then
   textutils.pagedPrint(table.concat(scripts, "\n"))
   return
+elseif cmd == "startup" then
+  if fs.exists("disk") then
+    files = {
+      {
+        name = "startup",
+        folder = "disk",
+        url = "https://raw.github.com/Forte40/act/"..branch.."/startup.act"
+      }
+    }
+    print("startup being copied to floppy")
+    print("copy an act script to the floppy manually")
+    print()
+  else
+    print("place next to drive with floppy")
+  end
 elseif cmd then
   local found = false
   for _, name in ipairs(scripts) do
