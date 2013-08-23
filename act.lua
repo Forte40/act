@@ -1251,7 +1251,9 @@ function interpret(ast, env, ext)
   fs.delete("startup")
   if fs.exists(".act.startup") then
     fs.move(".act.startup", "startup")
-    shell.run("startup")
+    if shell then
+      shell.run("startup")
+    end
   end
 end
 

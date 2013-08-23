@@ -48,7 +48,7 @@ elseif cmd == "startup" then
       {
         name = "startup",
         folder = "disk",
-        url = "https://raw.github.com/Forte40/act/"..branch.."/startup.act"
+        url = "https://raw.github.com/Forte40/act/"..branch.."/startup.lua"
       }
     }
     print("startup being copied to floppy")
@@ -56,6 +56,7 @@ elseif cmd == "startup" then
     print()
   else
     print("place next to drive with floppy")
+    return
   end
 elseif cmd then
   local found = false
