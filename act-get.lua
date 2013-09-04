@@ -36,7 +36,7 @@ local files = {
   }
 }
 
-local scripts = {"startup", "ethos_rail", "tree_farm", "tree", "tree2", "melon_farm"}
+local scripts = {"startup", "ethos_rail", "tree_farm", "tree", "tree2", "melon_farm", "mob_drop"}
 
 local cmd = ...
 if cmd == "list" then
