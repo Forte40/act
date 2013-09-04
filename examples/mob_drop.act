@@ -1,0 +1,136 @@
+(
+  -- floor section
+  s1 
+  Mf r ((Bd / Mf)2 / r Mf)4
+  Mf r ((Bd / Mf)4 / r Mf)4
+  Mf r ((Bd / Mf)6 / r Mf)4
+  Mf r ((Bd / Mf)8 / r Mf)4
+  (
+    Mf (((Bd / Mf)4 / r Mf r)2 / l Mf l)2
+    l Mf l (Bd / Mf)5
+    r r Mf l Mf r (((Bd / Mf)4 / l Mf l)2 / r Mf r)2
+    l l Mf4 l
+  )4
+  r Mf4 r Mf4 rr u
+  -- spawn pad 2 layers
+  (
+    s1 
+    Mf r (Mf Bd / r Mf)4
+    Mf r (Bd Mf2 Bd Mf Bd / r Mf)4
+    Mf r (Bd Mf Bd Mf2 Bd Mf Bd Mf Bd / r Mf)4
+    Mf l Mf r
+
+    (
+      Mf (((Bd / Mf)4 / r Mf r)2 / l Mf l)2
+      l Mf l Mf4 Bd
+      r r Mf l Mf r
+      (((Bd / Mf)4 / l Mf l)2 / r Mf r)2
+      l l Mf4 l
+    )4
+  /
+    r Mf4 r Mf4 rr u
+  )2
+  u
+  -- wall and slab 2 layers
+  (
+    (
+      (Mf Bd)4 r (Mf Bd)4
+      l Mf Bd rr Mf l
+      (Mf Bd)4 r (Mf Bd)4
+      / l
+    )4
+  /
+    s2
+    Mf2 l Mf 2 Bd
+    ((r Mf4 Bd)2 / l Mf4 Bd)4
+    s1
+    rr Mf2 r Mf2 u
+  )2
+  Mf4 r Mf4 rr
+  -- water
+  Md4 Pd l s13 Pf rr s14 Pf l Mu z1
+  (
+    s13 Pd z1 s14 Pd
+    Mf8 s13 Pd
+    rr Mf4 l Mf4 s14 Pd
+    r Mf4 r Mf4 rr
+  )4
+  Md l s13 Pf rr s14 Pf l s1 Dd
+)=%spawnlayer%
+
+(
+  %request ,64,block,1
+           ,12,slab,2
+           ,64,block,3
+           ,64,block,4
+           ,64,block,5
+           ,64,block,6
+           ,64,block,7
+           ,64,block,8
+           ,64,block,9
+           ,64,block,10
+           ,64,block,11
+           ,64,block,12
+           ,1,water,13
+           ,1,water,14%
+)=%stock%
+  -- floor section
+  s1 
+  Mf r ((Bd / Mf)2 / r Mf)4
+  Mf r ((Bd / Mf)4 / r Mf)4
+  Mf r ((Bd / Mf)6 / r Mf)4
+  Mf r ((Bd / Mf)8 / r Mf)4
+  (
+    Mf (((Bd / Mf)4 / r Mf r)2 / l Mf l)2
+    l Mf l (Bd / Mf)5
+    r r Mf l Mf r (((Bd / Mf)4 / l Mf l)2 / r Mf r)2
+    l l Mf4 l
+  )4
+  r Mf4 r Mf4 rr u
+-- roof
+(
+  s1
+  Mf r ((Bd / Mf)2 / r Mf)4
+  Mf r ((Bd / Mf)4 / r Mf)4
+  Mf r ((Bd / Mf)6 / r Mf)4
+  Mf r ((Bd / Mf)8 / r Mf)4
+  (
+    Mf (((Bd / Mf)4 / r Mf r)2 / l Mf l)2
+    l Mf l (Bd / Mf)5do 
+    r r Mf l Mf r (((Bd / Mf)4 / l Mf l)2 / r Mf r)2
+    l l Mf4 l
+  )4
+  r Mf4 r Mf4 rr u
+  s5
+  Mf r ((Bd / Mf)2 / r Mf)4
+  Mf r ((Bd / Mf)4 / r Mf)4
+  Mf r ((Bd / Mf)6 / r Mf)4
+  Mf r ((Bd / Mf)8 / r Mf)4
+  (
+    Mf (((Bd / Mf)4 / r Mf r)2 / l Mf l)2
+    l Mf l (Bd / Mf)5do 
+    r r Mf l Mf r (((Bd / Mf)4 / l Mf l)2 / r Mf r)2
+    l l Mf4 l
+  )4
+  r Mf4 r Mf4 rr Md2 Bu Md s1 Bu
+)=%roof%
+
+-- build spawn layers
+(
+  %stock%
+  Mu#_*5+19#
+  %spawnlayer%
+  Md#_*5+19#
+)#A
+-- build roof
+%request ,64,block,1
+         ,64,block,2
+         ,64,block,3
+         ,64,block,4
+         ,64,slab,5
+         ,64,slab,6
+         ,64,slab,7
+         ,64,slab,8%
+Mu#A*5+24#
+%roof%
+Md#A*5+22#
