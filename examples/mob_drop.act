@@ -108,7 +108,7 @@
   Mf r ((Bd / Mf)8 / r Mf)4
   (
     Mf (((Bd / Mf)4 / r Mf r)2 / l Mf l)2
-    l Mf l (Bd / Mf)5do 
+    l Mf l (Bd / Mf)5
     r r Mf l Mf r (((Bd / Mf)4 / l Mf l)2 / r Mf r)2
     l l Mf4 l
   )4
