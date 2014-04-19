@@ -3,7 +3,6 @@
 (
   s1 Sd ?Bd Md   -- check for sapling
   (
-    (Sf r)4            -- vacuum saplings
     ~Cd                -- check for dirt
     (s#_=#a ?Ic>0)4,16 -- find free
     Dd s1 Bd s#a       -- place dirt
@@ -15,9 +14,10 @@
 (
   Dd              -- chop down 1
   (?Cu Mu         -- chop up
+    (?Cf (Df r)4)   -- chop around
     (?If<1000 e1) -- refuel if needed
   )*=#h
-  d#h             -- go back down
+  Md#h             -- go back down
 )=%chop%
 
 (
@@ -34,7 +34,7 @@
 
 (
   Mf#C
-  (s#_ ?Ic>0)4,16=#a -- select free
+  (s#_ ?Ic>0 ~Cf)4,16=#a -- select tree or free
   Mf
   (?Ic>0
     (?Ic>0 t#_)4,#a=#b -- consolidate
@@ -48,13 +48,13 @@
   (s#_=#a ?Ic>0)3,16 -- get free spot
   (
     s2 ?Is>0 ?Sf     -- while need stuff and can get stuff
-    s#a (?Ic>0 rEfl) -- drop excess in other chest
+    s#a (?Ic>0 Ed) -- drop excess in other chest
   )*
-  r s#a
+  s#a
   (
-    ?Sf ?Ic>0 lEfr   -- put stuff back in chest
+    ?Sd ?Ic>0 Ef   -- put stuff back in chest
   )*
-  l2
+  l
 )=%getsapling%
 
 %request,64,dirt,1%
@@ -77,5 +77,6 @@
   Mf#C Mf r (Mf#CMf/Mf#CMf)#B r d Gb
   %refuel%
   l (s#_ (?Ic>0 Ef))4,16 r -- drop off logs
+  %getsapling%
   z#D
 )*
