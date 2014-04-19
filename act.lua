@@ -102,14 +102,6 @@ if turtle and not turtle.act then
     event = os.pullEvent("timer", timer)
   end  
 
-  for fnName, fn in pairs(turtle.native) do
-    if fnName ~= "getItemCount" and
-        fnName ~= "getItemSpace" and
-        fnName ~= "getFuelLevel" then
-      turtle[fnName] = wrap(fn)
-    end
-  end
-
   -- track relative direction and coordinates
   turtle.x = 0
   turtle.y = 0
