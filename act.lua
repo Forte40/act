@@ -102,22 +102,6 @@ if turtle and not turtle.act then
     event = os.pullEvent("timer", timer)
   end  
 
-  -- replace turtle functions
-  local function wrap(fn)
-    return function(...)
-      local id = fn(...)
-      if id == -1 then
-        return false
-      end
-      local event, responseID, success, err = os.pullEvent("turtle_response", id)
-      if success then
-        return true
-      else
-        return false, err
-      end
-    end
-  end
-
   for fnName, fn in pairs(turtle.native) do
     if fnName ~= "getItemCount" and
         fnName ~= "getItemSpace" and
