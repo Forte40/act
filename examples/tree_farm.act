@@ -22,7 +22,7 @@
 
 (
   ?If<1000
-  ?%peripheral,match,top,furnace%
+  ?Hu
   Gf rr Gu2 Gf   -- move above furnace
   (s#_ Ed)4,16   -- drop logs in
   Gb Gd          -- move in front
