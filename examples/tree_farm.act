@@ -44,7 +44,7 @@
 )=%nexttree%
 
 (
-  r                  -- face sapling chest
+  l                  -- face sapling chest
   (s#_=#a ?Ic>0)3,16 -- get free spot
   (
     s2 ?Is>0 ?Sf     -- while need stuff and can get stuff
@@ -54,7 +54,7 @@
   (
     ?Sd ?Ic>0 Ef   -- put stuff back in chest
   )*
-  l
+  r
 )=%getsapling%
 
 %request,64,dirt,1%
@@ -76,7 +76,7 @@
 
   Mf#C Mf r (Mf#CMf/Mf#CMf)#B r d Gb
   %refuel%
-  l (s#_ (?Ic>0 Ef))4,16 r -- drop off logs
+  r (s#_ (?Ic>0 Ef))4,16 l -- drop off logs
   %getsapling%
   z#D
 )*
