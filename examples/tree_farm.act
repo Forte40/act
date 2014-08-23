@@ -8,7 +8,7 @@
     Dd s1 Bd s#a       -- place dirt
     (?Ic>0 t1)         -- move replaced block
   )
-  Mu s2 Bd    -- plant sapling
+  (?Ic>1 Mu s2 Bd)    -- plant sapling
 )=%plant%
 
 (
@@ -76,6 +76,7 @@
 
   Mf#C Mf r (Mf#CMf/Mf#CMf)#B r d Gb
   %refuel%
+  (s#_ (?Ct2 t2))4,16 -- refill sapling slot
   r (s#_ (?Ic>0 Ef))4,16 l -- drop off logs
   %getsapling%
   z#D
